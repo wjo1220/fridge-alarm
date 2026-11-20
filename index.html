@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>우리집 냉장고 유통기한 알리미</title>
+<meta name="description" content="냉장고에 넣은 음식과 유통기한을 기록하면 임박한 음식을 알려주는 무료 앱">
+<meta name="theme-color" content="#5aa9f5">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="favicon.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="냉장고">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Jua&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#eef6fb;--card:#ffffff;--ink:#22323f;--sub:#7b8b98;--line:#e6eef4;
+    --mint:#3cc5a2;--mint-soft:#e3f8f2;--sky:#5aa9f5;--sky-soft:#e6f2fe;
+    --orange:#ff9f43;--orange-soft:#fff2e3;--red:#ff6b6b;--red-soft:#ffe9e9;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{margin:0;font-family:"Gowun Dodum",-apple-system,"Apple SD Gothic Neo",sans-serif;background:var(--bg);color:var(--ink)}
+  .wrap{max-width:540px;margin:0 auto;padding:0 0 60px}
+
+  /* 헤더 */
+  .hero{background:linear-gradient(140deg,#7fd3f7 0%,#5aa9f5 55%,#7b8cf5 100%);color:#fff;padding:26px 20px 64px;border-radius:0 0 32px 32px;position:relative;overflow:hidden}
+  .hero::after{content:"❄";position:absolute;right:-10px;top:-24px;font-size:150px;opacity:.13}
+  .hero h1{font-family:"Jua",sans-serif;font-weight:400;font-size:27px;margin:0 0 4px;letter-spacing:-.5px}
+  .hero p{margin:0;font-size:14px;opacity:.92}
+  .stats{display:flex;gap:10px;margin:-44px 16px 16px;position:relative;z-index:1}
+  .stat{flex:1;background:#fff;border-radius:18px;padding:12px 8px;text-align:center;box-shadow:0 6px 18px rgba(60,110,160,.12)}
+  .stat b{display:block;font-family:"Jua";font-weight:400;font-size:26px;line-height:1.1}
+  .stat span{font-size:12px;color:var(--sub)}
+  .stat.all b{color:var(--sky)} .stat.soon b{color:var(--orange)} .stat.bad b{color:var(--red)}
+
+  .alert{margin:0 16px 14px;border-radius:18px;padding:14px 16px;font-size:14.5px;line-height:1.6;display:none}
+  .alert.warn{display:block;background:var(--orange-soft);border:1.5px solid #ffd3a3}
+  .alert.ok{display:block;background:var(--mint-soft);border:1.5px solid #b5ecdc}
+
+  .card{background:var(--card);border-radius:24px;padding:18px;margin:0 16px 14px;box-shadow:0 4px 16px rgba(60,110,160,.08)}
+  .card h2{font-family:"Jua";font-weight:400;font-size:18px;margin:0 0 14px}
+
+  /* 입력 */
+  .namebox{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+  .preview{width:58px;height:58px;flex:none;border-radius:18px;background:var(--sky-soft);display:flex;align-items:center;justify-content:center;font-size:32px;transition:transform .25s}
+  .preview.pop{transform:scale(1.18) rotate(-6deg)}
+  input,select{width:100%;font-family:inherit;font-size:16px;padding:13px 14px;border:1.5px solid var(--line);border-radius:14px;background:#f8fbfd;color:var(--ink);outline:none;transition:border .2s}
+  input:focus,select:focus{border-color:var(--sky);background:#fff}
+  .places{display:flex;gap:8px;margin-bottom:12px}
+  .places button{flex:1;font-family:inherit;font-size:15px;padding:11px 0;border-radius:14px;border:1.5px solid var(--line);background:#fff;color:var(--ink);cursor:pointer}
+  .places button.on{border-color:var(--sky);background:var(--sky-soft);color:#2b7fd4;font-weight:700}
+  .quick{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0 14px}
+  .quick button{font-family:inherit;padding:7px 12px;font-size:13px;border:0;border-radius:99px;background:#f0f5f9;color:var(--ink);cursor:pointer}
+  .quick button:active{background:var(--sky-soft)}
+  .primary{width:100%;font-family:"Jua";font-size:18px;border:0;border-radius:16px;padding:14px;cursor:pointer;color:#fff;background:linear-gradient(135deg,#3cc5a2,#2fb6c9);box-shadow:0 6px 14px rgba(47,182,170,.3)}
+  .primary:active{transform:translateY(1px)}
+
+  /* 목록 */
+  .tabs{display:flex;gap:6px;margin-bottom:12px;background:#f0f5f9;padding:4px;border-radius:14px}
+  .tabs button{flex:1;font-family:inherit;padding:9px 0;font-size:14px;border:0;border-radius:11px;background:transparent;color:var(--sub);cursor:pointer}
+  .tabs button.on{background:#fff;color:var(--ink);font-weight:700;box-shadow:0 2px 6px rgba(0,0,0,.06)}
+  .item{display:flex;align-items:center;gap:12px;padding:12px;border-radius:18px;margin-bottom:8px;background:#fafcfe;border:1.5px solid var(--line);animation:in .3s ease}
+  @keyframes in{from{opacity:0;transform:translateY(6px)}to{opacity:1}}
+  .item.warn{background:#fffaf4;border-color:#ffe0bd}
+  .item.bad{background:#fff6f6;border-color:#ffd0d0}
+  .ico{width:50px;height:50px;flex:none;border-radius:16px;background:var(--sky-soft);display:flex;align-items:center;justify-content:center;font-size:27px}
+  .item.warn .ico{background:var(--orange-soft)} .item.bad .ico{background:var(--red-soft)}
+  .info{flex:1;min-width:0}
+  .name{font-size:16.5px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .meta{font-size:12px;color:var(--sub);margin-top:2px}
+  .bar{height:6px;background:#e9f0f5;border-radius:9px;margin-top:7px;overflow:hidden}
+  .bar i{display:block;height:100%;border-radius:9px;background:var(--mint)}
+  .item.warn .bar i{background:var(--orange)} .item.bad .bar i{background:var(--red)}
+  .right{display:flex;flex-direction:column;align-items:flex-end;gap:6px}
+  .badge{font-family:"Jua";font-size:15px;padding:4px 10px;border-radius:99px;background:var(--mint-soft);color:#1f9e7f;white-space:nowrap}
+  .item.warn .badge{background:var(--orange-soft);color:#e07f17}
+  .item.bad .badge{background:var(--red-soft);color:#e04848}
+  .del{font-family:inherit;font-size:12px;border:0;background:transparent;color:var(--sub);cursor:pointer;padding:2px}
+  .empty{color:var(--sub);text-align:center;padding:28px 0 18px;font-size:14px}
+  .empty div{font-size:46px;margin-bottom:6px}
+
+  .set{display:flex;align-items:center;gap:8px;font-size:14px;flex-wrap:wrap}
+  .set select{width:auto;padding:8px 12px}
+  .foot{font-size:12px;color:var(--sub);text-align:center;margin-top:6px}
+  .toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(80px);background:#22323f;color:#fff;padding:11px 18px;border-radius:99px;font-size:14px;transition:transform .3s;z-index:9}
+  .toast.show{transform:translateX(-50%) translateY(0)}
+
+  /* 양문형 냉장고 */
+  .view{display:flex;gap:6px;margin:-4px 0 14px}
+  .view button{flex:1;font-family:"Jua";font-size:15px;padding:10px 0;border-radius:14px;border:1.5px solid var(--line);background:#fff;color:var(--sub);cursor:pointer}
+  .view button.on{border-color:var(--sky);background:var(--sky-soft);color:#2b7fd4}
+  .stage{perspective:1100px;overflow:hidden;padding:14px 0 4px;margin:0 -18px}
+  .fr{position:relative;width:min(290px,calc(100% - 96px));height:500px;margin:0 auto;border-radius:20px 20px 12px 12px;
+      background:linear-gradient(90deg,#aeb9c3,#d7dfe6 20%,#e9eef2 50%,#d7dfe6 80%,#aeb9c3);
+      box-shadow:0 26px 30px -18px rgba(30,60,90,.55),inset 0 0 0 2px #c3cdd6;transform-style:preserve-3d}
+  .fr .top{position:absolute;left:0;right:0;top:-10px;height:14px;border-radius:12px 12px 0 0;background:linear-gradient(180deg,#e6ecf1,#c3ccd5)}
+  .cab{position:absolute;top:8px;bottom:8px;width:calc(50% - 10px);transform-style:preserve-3d}
+  .cab.left{left:7px}.cab.right{right:7px}
+  .inside{position:absolute;inset:0;border-radius:10px;overflow-y:auto;padding:24px 6px 6px;
+      background:linear-gradient(180deg,#ffffff,#e9f2f8);box-shadow:inset 0 0 0 3px #dfe8ef,inset 0 14px 24px rgba(120,160,200,.22)}
+  .cab.left .inside{background:linear-gradient(180deg,#f3f8ff,#d6e6fa)}
+  .lamp{position:absolute;top:6px;left:50%;transform:translateX(-50%);width:44px;height:6px;border-radius:9px;background:#e3eaf0;transition:.4s}
+  .cab.open .lamp{background:#fff7cf;box-shadow:0 0 18px 8px rgba(255,240,170,.75)}
+  .inside .ctitle{font-family:"Jua";font-size:12px;color:#7a9bb8;text-align:center;margin:0 0 4px}
+  .shelf2{display:flex;flex-wrap:wrap;justify-content:center;gap:2px;min-height:60px;align-items:flex-end;padding:4px 0;
+      border-bottom:5px solid rgba(165,205,235,.65);box-shadow:0 5px 0 -2px rgba(255,255,255,.7)}
+  .drawer{position:relative;min-height:86px;margin:0 0 8px;padding:4px 2px 12px;border-radius:9px;display:flex;flex-wrap:wrap;justify-content:center;align-content:flex-end;gap:2px;
+      background:linear-gradient(180deg,rgba(255,255,255,.2),rgba(190,215,245,.55));border:1.5px solid rgba(140,180,225,.75)}
+  .drawer::after{content:"";position:absolute;bottom:4px;left:50%;transform:translateX(-50%);width:36%;height:4px;border-radius:4px;background:rgba(120,160,210,.6)}
+  .crisper{position:relative;min-height:82px;margin-top:8px;padding:4px 2px 12px;border-radius:9px;display:flex;flex-wrap:wrap;justify-content:center;align-content:flex-end;gap:2px;
+      background:linear-gradient(180deg,rgba(230,250,238,.4),rgba(175,225,198,.65));border:1.5px solid #9fd6b7}
+  .crisper::after{content:"🥬 채소·과일칸";position:absolute;bottom:1px;left:0;right:0;text-align:center;font-size:9.5px;color:#5aa57e}
+  .pocket{position:relative;min-height:70px;margin-top:8px;padding:4px 2px 12px;display:flex;flex-wrap:wrap;justify-content:center;align-content:flex-end;gap:2px;
+      border:2px solid rgba(150,195,228,.9);border-top:0;border-radius:0 0 10px 10px;background:linear-gradient(180deg,transparent 30%,rgba(190,220,245,.5))}
+  .pocket::after{content:"🥛 음료·소스칸";position:absolute;bottom:1px;left:0;right:0;text-align:center;font-size:9.5px;color:#5b8fbf}
+  .door{position:absolute;inset:0;transform-style:preserve-3d;transition:transform .9s cubic-bezier(.25,.85,.3,1);cursor:pointer;z-index:3}
+  .cab.left .door{transform-origin:left center}.cab.right .door{transform-origin:right center}
+  .cab.left.open .door{transform:rotateY(-112deg)}.cab.right.open .door{transform:rotateY(112deg)}
+  .face{position:absolute;inset:0;border-radius:10px;backface-visibility:hidden;-webkit-backface-visibility:hidden}
+  .front{background:
+      repeating-linear-gradient(90deg,rgba(255,255,255,0) 0 2px,rgba(90,110,130,.025) 2px 3px),
+      linear-gradient(100deg,#e4eaef 0%,#fbfcfd 30%,#e7ecf0 55%,#f6f8fa 80%,#dde4ea 100%);
+      box-shadow:inset 0 0 0 1px #c8d2db,inset 0 -10px 18px rgba(0,0,0,.05)}
+  .back{transform:rotateY(180deg);padding:20px 6px 6px;display:flex;flex-direction:column;gap:8px;
+      background:linear-gradient(180deg,#f4f8fb,#e0e8ef);box-shadow:inset 0 0 0 4px #d3dde6}
+  .bin{flex:1;display:flex;flex-wrap:wrap;justify-content:center;align-content:flex-end;gap:1px;padding:0 2px;
+      border:2px solid rgba(150,195,228,.85);border-top:0;border-radius:0 0 8px 8px;background:linear-gradient(180deg,transparent 45%,rgba(190,220,245,.45))}
+  .handle2{position:absolute;top:120px;width:9px;height:150px;border-radius:6px;
+      background:linear-gradient(90deg,#8e9ba7,#f3f6f8 45%,#9eabb6);box-shadow:3px 4px 7px rgba(0,0,0,.22)}
+  .cab.left .handle2{right:9px}.cab.right .handle2{left:9px}
+  .panel{position:absolute;top:26px;left:50%;transform:translateX(-50%);width:74px;padding:7px 0 6px;border-radius:10px;text-align:center;
+      background:linear-gradient(180deg,#24313d,#16202a);box-shadow:inset 0 0 0 2px #3a4a58,0 2px 4px rgba(0,0,0,.2)}
+  .panel b{display:block;font-family:"Jua";font-weight:400;font-size:20px;color:#7fe3ff;text-shadow:0 0 8px rgba(127,227,255,.7);line-height:1.1}
+  .panel span{font-size:10px;color:#9fb6c8}
+  .cab.right .panel b{color:#8dffcf;text-shadow:0 0 8px rgba(141,255,207,.6)}
+  .cnt{position:absolute;top:96px;left:0;right:0;text-align:center;font-size:11.5px;color:#6f8394}
+  .memo{position:absolute;left:50%;bottom:58px;width:82px;transform:translateX(-50%) rotate(-4deg);padding:16px 6px 7px;font-size:11px;line-height:1.45;
+      background:#fff3a6;color:#5b4a12;box-shadow:2px 4px 6px rgba(0,0,0,.15);text-align:center;border-radius:2px}
+  .memo::before{content:"";position:absolute;top:-6px;left:50%;transform:translateX(-50%);width:16px;height:16px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#ff9a9a,#e04848)}
+  .memo.ok{background:#d9f7ea;color:#25624c}
+  .tap{position:absolute;bottom:16px;left:0;right:0;text-align:center;font-size:11px;color:#8a9aa8;animation:blink 2.2s infinite}
+  @keyframes blink{50%{opacity:.35}}
+  .cab.right .tap{animation-delay:1.1s}
+  .feet{display:flex;justify-content:space-between;width:min(250px,calc(100% - 130px));margin:0 auto}
+  .feet i{width:26px;height:8px;background:#b5c2ce;border-radius:0 0 8px 8px}
+  .food{width:42px;display:flex;flex-direction:column;align-items:center;cursor:pointer;background:none;border:0;padding:0;font-family:inherit}
+  .food .e{font-size:25px;line-height:1.15;filter:drop-shadow(0 3px 2px rgba(0,0,0,.14))}
+  .food .t{font-family:"Jua";font-size:10px;padding:0 5px;border-radius:99px;background:var(--mint-soft);color:#1f9e7f;white-space:nowrap}
+  .food.warn .t{background:var(--orange);color:#fff}.food.bad .t{background:var(--red);color:#fff}
+  .food.warn .e,.food.bad .e{animation:shake 1.6s infinite}
+  @keyframes shake{0%,86%,100%{transform:none}90%{transform:rotate(-10deg)}95%{transform:rotate(10deg)}}
+  .food .n{font-size:9.5px;color:var(--sub);max-width:42px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .bin .food .n{display:none}
+  .basket{width:min(290px,calc(100% - 96px));margin:16px auto 0;background:linear-gradient(180deg,#f8eddc,#efdcc0);border-radius:10px 10px 22px 22px;padding:8px 10px 6px;box-shadow:inset 0 -4px 0 #e0c79f}
+  .basket .ctitle{font-family:"Jua";font-size:13px;color:#a5865a}
+  .basket .row{display:flex;flex-wrap:wrap;gap:4px;min-height:58px;align-items:flex-end}
+  .hint{font-size:12px;color:var(--sub);text-align:center;margin-top:10px}
+  .panel{cursor:pointer}
+  .panel::after{content:"⚙️";position:absolute;right:-7px;top:-7px;font-size:11px;background:#fff;border-radius:50%;width:18px;height:18px;line-height:18px;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+  .panel.hot{box-shadow:inset 0 0 0 2px #ff8a65,0 0 10px rgba(255,120,80,.6)}
+  .temp{display:flex;align-items:center;justify-content:center;gap:16px;margin:6px 0 4px}
+  .temp button{width:52px;height:52px;border-radius:50%;border:0;font-size:26px;font-family:"Jua";background:#eef3f7;color:var(--ink);cursor:pointer}
+  .temp .val{min-width:110px;padding:10px 0;border-radius:16px;background:linear-gradient(180deg,#24313d,#16202a);font-family:"Jua";font-size:38px;color:#7fe3ff;text-shadow:0 0 10px rgba(127,227,255,.7)}
+  .temp .val.fr{color:#8dffcf;text-shadow:0 0 10px rgba(141,255,207,.6)}
+  .tnote{font-size:12.5px;color:var(--sub);min-height:36px;margin:8px 0 14px;line-height:1.45}
+  .tnote.bad{color:#e0622f}
+  .edit{text-align:left;margin:0 0 14px}
+  .edit label{display:block;font-size:12px;color:var(--sub);margin:8px 0 4px}
+  .edit input{padding:10px 12px;font-size:15px}
+  .edit .places{margin:0}
+  .edit .places button{padding:9px 0;font-size:14px}
+  .x{position:absolute;right:14px;top:12px;border:0;background:#eef3f7;width:32px;height:32px;border-radius:50%;font-size:15px;cursor:pointer;color:var(--sub)}
+  .sheet{position:relative}
+  .sheet .save{background:var(--sky);color:#fff}
+  .toast button{margin-left:10px;border:0;background:#fff;color:var(--ink);font-family:"Jua";border-radius:99px;padding:4px 10px;cursor:pointer}
+  .ex{font-size:12px;color:var(--sub);margin:-6px 0 10px}
+  /* 팝업 */
+  .modal{position:fixed;inset:0;background:rgba(30,45,60,.35);display:none;align-items:center;justify-content:center;z-index:8;padding:20px}
+  .modal.show{display:flex}
+  .sheet{background:#fff;border-radius:26px;padding:22px;width:100%;max-width:300px;text-align:center;animation:in .25s}
+  .sheet .big{font-size:56px}
+  .sheet h3{font-family:"Jua";font-weight:400;font-size:22px;margin:4px 0}
+  .sheet p{color:var(--sub);font-size:14px;margin:0 0 16px}
+  .sheet .btns{display:flex;gap:8px}
+  .sheet .btns button{flex:1;font-family:"Jua";font-size:16px;padding:12px;border:0;border-radius:14px;cursor:pointer}
+  .sheet .eat{background:var(--mint);color:#fff}.sheet .close{background:#eef3f7;color:var(--ink)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hero">
+    <h1>🧊 우리집 냉장고</h1>
+    <p>넣은 음식과 유통기한을 적어두면 임박한 걸 알려줘요</p>
+  </div>
+
+  <div class="stats">
+    <div class="stat all"><b id="sAll">0</b><span>보관 중</span></div>
+    <div class="stat soon"><b id="sSoon">0</b><span>임박</span></div>
+    <div class="stat bad"><b id="sBad">0</b><span>지남</span></div>
+  </div>
+
+  <div id="alert" class="alert"></div>
+
+  <div class="card">
+    <h2>➕ 음식 넣기</h2>
+    <form id="form">
+      <div class="namebox">
+        <div class="preview" id="preview">🍽️</div>
+        <input id="name" placeholder="음식 이름 (예: 우유, 계란, 사과)" required autocomplete="off">
+      </div>
+      <div class="places" id="places">
+        <button type="button" data-p="냉장" class="on">🧊 냉장</button>
+        <button type="button" data-p="냉동">❄️ 냉동</button>
+        <button type="button" data-p="실온">🏠 실온</button>
+      </div>
+      <input id="date" type="date" required>
+      <div class="quick">
+        <button type="button" data-d="3">+3일</button>
+        <button type="button" data-d="7">+1주</button>
+        <button type="button" data-d="14">+2주</button>
+        <button type="button" data-d="30">+1달</button>
+        <button type="button" data-d="90">+3달</button>
+      </div>
+      <button class="primary" type="submit">냉장고에 넣기</button>
+    </form>
+  </div>
+
+  <div class="card">
+    <h2>📋 냉장고 안</h2>
+    <div class="view">
+      <button data-v="fridge" class="on">🧊 냉장고 모양</button>
+      <button data-v="list">📋 목록</button>
+    </div>
+    <div id="fridgeView"></div>
+    <div id="listView" style="display:none">
+    <div class="tabs">
+      <button data-f="all" class="on">전체</button>
+      <button data-f="냉장">냉장</button>
+      <button data-f="냉동">냉동</button>
+      <button data-f="실온">실온</button>
+    </div>
+    <div id="list"></div>
+    </div>
+  </div>
+
+  <div class="card set">
+    <span>🔔 알림 기준</span>
+    <select id="days">
+      <option value="1">1일 전</option><option value="2">2일 전</option>
+      <option value="3" selected>3일 전</option><option value="5">5일 전</option><option value="7">7일 전</option>
+    </select>
+    <span>부터 알려주기</span>
+  </div>
+  <div class="foot" id="status">불러오는 중…</div>
+</div>
+<div class="toast" id="toast"></div>
+<div class="modal" id="modal"><div class="sheet">
+  <button class="x" id="mClose">✕</button>
+  <div class="big" id="mIco"></div><h3 id="mName"></h3><p id="mInfo"></p>
+  <div class="edit">
+    <label>이름</label><input id="mNameIn" autocomplete="off">
+    <label>유통기한</label><input id="mDate" type="date">
+    <label>보관</label>
+    <div class="places" id="mPlaces">
+      <button type="button" data-p="냉장">🧊 냉장</button><button type="button" data-p="냉동">❄️ 냉동</button><button type="button" data-p="실온">🏠 실온</button>
+    </div>
+  </div>
+  <div class="btns"><button class="save" id="mSave">수정 저장</button><button class="eat" id="mEat">다 먹음 ✓</button></div>
+</div></div>
+<div class="modal" id="tModal"><div class="sheet">
+  <button class="x" id="tClose">✕</button>
+  <h3 id="tTitle">온도 설정</h3>
+  <div class="temp"><button id="tMinus">−</button><div class="val" id="tVal"></div><button id="tPlus">+</button></div>
+  <div class="tnote" id="tNote"></div>
+  <div class="btns"><button class="save" id="tOk">설정 완료</button></div>
+</div></div>
+
+<script>
+// 음식 이름 → 아이콘
+const ICONS = [
+  [["우유","밀크"],"🥛"],[["요거트","요구르트","요플레"],"🥣"],[["계란","달걀","메추리알"],"🥚"],
+  [["치즈"],"🧀"],[["버터"],"🧈"],[["생크림","아이스크림","빙수"],"🍦"],
+  [["삼겹","목살","소고기","돼지","쇠고기","한우","고기","스테이크","갈비","불고기","차돌","등심"],"🥩"],
+  [["닭","치킨"],"🍗"],[["베이컨"],"🥓"],[["소시지","햄","핫도그"],"🌭"],
+  [["새우"],"🦐"],[["오징어","문어","쭈꾸미","낙지"],"🦑"],[["게","꽃게","대게"],"🦀"],[["조개","굴","전복"],"🦪"],
+  [["생선","고등어","연어","갈치","참치","명태","동태","조기","회"],"🐟"],
+  [["사과"],"🍎"],[["배"],"🍐"],[["바나나"],"🍌"],[["딸기"],"🍓"],[["포도","샤인머스캣"],"🍇"],
+  [["귤","오렌지","한라봉","천혜향"],"🍊"],[["레몬","라임"],"🍋"],[["수박"],"🍉"],[["복숭아"],"🍑"],
+  [["체리"],"🍒"],[["키위"],"🥝"],[["망고"],"🥭"],[["파인애플"],"🍍"],[["블루베리"],"🫐"],[["멜론","참외"],"🍈"],
+  [["토마토"],"🍅"],[["당근"],"🥕"],[["고구마"],"🍠"],[["감자"],"🥔"],[["양파"],"🧅"],[["마늘"],"🧄"],
+  [["브로콜리"],"🥦"],[["오이"],"🥒"],[["가지"],"🍆"],[["옥수수"],"🌽"],[["고추","청양"],"🌶️"],[["파프리카","피망"],"🫑"],
+  [["버섯","표고","팽이","새송이"],"🍄"],[["아보카도"],"🥑"],[["콩","두부","낫또"],"🫘"],
+  [["상추","양상추","배추","양배추","시금치","깻잎","채소","야채","샐러드","김치","부추","대파","쪽파"],"🥬"],
+  [["빵","식빵","베이글","바게트"],"🍞"],[["케이크","케익"],"🍰"],[["떡"],"🍡"],[["밥","햇반"],"🍚"],
+  [["만두"],"🥟"],[["피자"],"🍕"],[["햄버거","버거"],"🍔"],[["라면","국수","면","우동","파스타"],"🍜"],
+  [["국","찌개","탕","카레","수프"],"🍲"],[["반찬","도시락"],"🍱"],[["초콜릿","초코"],"🍫"],[["과자","쿠키"],"🍪"],
+  [["꿀","잼"],"🍯"],[["케첩","마요","소스","장","된장","고추장","간장"],"🥫"],
+  [["주스","쥬스"],"🧃"],[["콜라","사이다","탄산","음료"],"🥤"],[["맥주"],"🍺"],[["와인"],"🍷"],[["소주","막걸리","술"],"🍶"],
+  [["커피","라떼"],"☕"],[["물","생수"],"💧"]
+];
+function iconFor(name){
+  const n=(name||"").replace(/\s/g,"");
+  if(!n) return "🍽️";
+  let best=null,len=0;
+  for(const [keys,ico] of ICONS) for(const k of keys) if(n.includes(k)&&k.length>len){best=ico;len=k.length;}
+  return best||"🍽️";
+}
+
+let items=[],filter="all",warnDays=3,place="냉장";
+const $=id=>document.getElementById(id);
+const pad=n=>String(n).padStart(2,"0");
+const ymd=d=>d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());
+function daysLeft(s){const t=new Date();t.setHours(0,0,0,0);return Math.round((new Date(s+"T00:00:00")-t)/86400000);}
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+function toast(m,undo){const t=$("toast");t.textContent=m;
+  if(undo){const b=document.createElement("button");b.textContent="되돌리기";b.onclick=()=>{undo();t.classList.remove("show");};t.appendChild(b);}
+  t.classList.add("show");clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove("show"),undo?4000:1800);}
+
+let temps={fz:-18,fr:3};
+function loadLocal(){try{const tp=JSON.parse(localStorage.getItem("fridge-temp")||"null");if(tp)temps=tp;}catch(e){}try{items=JSON.parse(localStorage.getItem("fridge-items")||"[]");warnDays=+(localStorage.getItem("fridge-days")||3);}catch(e){}}
+function saveLocal(){try{localStorage.setItem("fridge-items",JSON.stringify(items));localStorage.setItem("fridge-days",warnDays);localStorage.setItem("fridge-temp",JSON.stringify(temps));}catch(e){}}
+
+function render(){
+  $("days").value=String(warnDays);
+  if(typeof renderFridge==="function")renderFridge();
+  const list=items.filter(i=>filter==="all"||i.place===filter).sort((a,b)=>a.date.localeCompare(b.date));
+  $("list").innerHTML=list.length?list.map(i=>{
+    const d=daysLeft(i.date);
+    const cls=d<0?"bad":d<=warnDays?"warn":"";
+    const txt=d<0?(-d)+"일 지남":d===0?"오늘까지":"D-"+d;
+    // 남은 기간 막대: 넣은 날~유통기한 기준
+    let pct=100;
+    if(i.added){const total=Math.max(1,Math.round((new Date(i.date)-new Date(i.added))/86400000));pct=Math.max(0,Math.min(100,d/total*100));}
+    if(d<0)pct=100;
+    const pIco=i.place==="냉동"?"❄️":i.place==="실온"?"🏠":"🧊";
+    return `<div class="item ${cls}"><div class="ico">${i.icon||iconFor(i.name)}</div>
+      <div class="info"><div class="name">${esc(i.name)}</div>
+        <div class="meta">${pIco} ${esc(i.place)} · ${i.date.replace(/-/g,".")}까지</div>
+        <div class="bar"><i style="width:${pct}%"></i></div></div>
+      <div class="right"><div class="badge">${txt}</div><button class="del" data-id="${i.id}">다 먹음 ✓</button></div></div>`;
+  }).join(""):`<div class="empty"><div>🫙</div>${filter==="all"?"아직 넣은 음식이 없어요":"여기엔 아무것도 없어요"}</div>`;
+
+  const expired=items.filter(i=>daysLeft(i.date)<0);
+  const soon=items.filter(i=>{const d=daysLeft(i.date);return d>=0&&d<=warnDays;});
+  $("sAll").textContent=items.length;$("sSoon").textContent=soon.length;$("sBad").textContent=expired.length;
+  const a=$("alert");
+  if(expired.length||soon.length){
+    a.className="alert warn";let h="";
+    if(soon.length)h+=`⏰ <b>곧 유통기한!</b> ${soon.map(i=>(i.icon||iconFor(i.name))+" "+esc(i.name)).join(", ")}<br>`;
+    if(expired.length)h+=`⚠️ <b>이미 지났어요</b> ${expired.map(i=>(i.icon||iconFor(i.name))+" "+esc(i.name)).join(", ")}`;
+    a.innerHTML=h;
+  }else if(items.length){a.className="alert ok";a.innerHTML="👍 임박한 음식이 없어요. 냉장고가 싱싱해요!";}
+  else a.className="alert";
+}
+
+async function addItem(it){
+  items.push(it);render();if(it.place==="냉동")toggleDoor("left",true);if(it.place==="냉장")toggleDoor("right",true);toast(it.icon+" "+it.name+" 넣었어요");
+  saveLocal();
+}
+async function delItem(id){
+  const it=items.find(i=>i.id===id);
+  items=items.filter(i=>i.id!==id);render();
+  if(it)toast("😋 "+it.name+" 다 먹었어요",()=>{items.push(it);render();saveLocal();});
+  saveLocal();
+}
+async function saveDays(){
+  saveLocal();
+}
+
+let lastIco="🍽️";
+$("name").addEventListener("input",()=>{
+  const ico=iconFor($("name").value),p=$("preview");
+  if(ico!==lastIco){p.textContent=ico;p.classList.add("pop");setTimeout(()=>p.classList.remove("pop"),250);lastIco=ico;}
+});
+$("form").addEventListener("submit",e=>{
+  e.preventDefault();
+  const name=$("name").value.trim(),date=$("date").value;
+  if(!name||!date)return;
+  addItem({id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),name,date,place,icon:iconFor(name),added:ymd(new Date())});
+  defaultDate();$("name").value="";$("preview").textContent="🍽️";lastIco="🍽️";$("name").focus();
+});
+document.querySelectorAll("#places button").forEach(b=>b.onclick=()=>{place=b.dataset.p;document.querySelectorAll("#places button").forEach(x=>x.classList.toggle("on",x===b));});
+document.querySelectorAll(".quick button").forEach(b=>b.onclick=()=>{const d=new Date();d.setDate(d.getDate()+ +b.dataset.d);$("date").value=ymd(d);});
+document.querySelectorAll(".tabs button").forEach(b=>b.onclick=()=>{filter=b.dataset.f;document.querySelectorAll(".tabs button").forEach(x=>x.classList.toggle("on",x===b));render();});
+
+function ddayText(d){return d<0?(-d)+"일 지남":d===0?"오늘까지":"D-"+d;}
+function foodHTML(i){
+  const d=daysLeft(i.date),cls=d<0?"bad":d<=warnDays?"warn":"";
+  return `<button class="food ${cls}" data-open="${i.id}"><span class="e">${i.icon||iconFor(i.name)}</span><span class="t">${ddayText(d)}</span><span class="n">${esc(i.name)}</span></button>`;
+}
+const DOOR_ICONS="🥛🧃🥤🍺🍷🍶💧🥫🍯🥚☕";
+const VEG_ICONS="🥬🥕🍅🥒🍆🌽🌶️🫑🍄🥦🧅🧄🥔🍠🥑🍎🍐🍌🍓🍇🍊🍋🍉🍑🍒🥝🥭🍍🫐🍈🫘";
+const ico=i=>i.icon||iconFor(i.name);
+function chunk(arr,n,min){const o=[];for(let k=0;k<arr.length;k+=n)o.push(arr.slice(k,k+n));while(o.length<min)o.push([]);return o;}
+let doorOpen={left:false,right:false};
+function buildFridge(){
+  $("fridgeView").innerHTML=`
+  <div class="stage"><div class="fr"><div class="top"></div>
+    <div class="cab left" id="cabL">
+      <div class="inside"><div class="lamp"></div><div class="ctitle">❄️ 냉동실</div><div id="inL"></div></div>
+      <div class="door" data-door="left">
+        <div class="face front"><div class="panel" data-temp="fz" id="pL"><b id="tL"></b><span>냉동</span></div><div class="cnt" id="cntL"></div>
+          <div class="memo" id="memoL"></div><div class="handle2"></div><div class="tap">👆 눌러서 열기</div></div>
+        <div class="face back" id="backL"><div class="bin"></div><div class="bin"></div><div class="bin"></div></div>
+      </div>
+    </div>
+    <div class="cab right" id="cabR">
+      <div class="inside"><div class="lamp"></div><div class="ctitle">🧊 냉장실</div><div id="inR"></div></div>
+      <div class="door" data-door="right">
+        <div class="face front"><div class="panel" data-temp="fr" id="pR"><b id="tR"></b><span>냉장</span></div><div class="cnt" id="cntR"></div>
+          <div class="memo" id="memoR"></div><div class="handle2"></div><div class="tap">👆 눌러서 열기</div></div>
+        <div class="face back" id="backR"></div>
+      </div>
+    </div>
+  </div><div class="feet"><i></i><i></i></div></div>
+  <div class="basket"><div class="ctitle">🏠 실온 바구니</div><div class="row" id="inRT"></div></div>
+  <div class="hint">문을 누르면 열리고, 열린 문을 한 번 더 누르면 닫혀요.<br>냉장실은 음료·소스칸, 채소·과일칸이 따로 있어요.</div>`;
+  $("fridgeView").addEventListener("click",e=>{
+    const tp=e.target.closest("[data-temp]");if(tp){e.stopPropagation();openTemp(tp.dataset.temp);return;}
+    const f=e.target.closest("[data-open]");if(f){e.stopPropagation();openFood(f.dataset.open);return;}
+    const d=e.target.closest("[data-door]");if(d)toggleDoor(d.dataset.door);
+  });
+}
+function toggleDoor(side,force){
+  doorOpen[side]=force===undefined?!doorOpen[side]:force;
+  $(side==="left"?"cabL":"cabR").classList.toggle("open",doorOpen[side]);
+}
+function memoHTML(list){
+  const urgent=list.filter(i=>daysLeft(i.date)<=warnDays);
+  if(!list.length)return["ok","텅 비었어요<br>🫙"];
+  if(!urgent.length)return["ok","모두 싱싱!<br>👍"];
+  return["",urgent.slice(0,3).map(i=>ico(i)+" "+esc(i.name)+"<br><b>"+ddayText(daysLeft(i.date))+"</b>").join("<br>")];
+}
+function renderFridge(){
+  if(!$("cabL"))buildFridge();
+  const sorted=[...items].sort((a,b)=>a.date.localeCompare(b.date));
+  const fz=sorted.filter(i=>i.place==="냉동"),fr=sorted.filter(i=>i.place==="냉장"),rt=sorted.filter(i=>i.place==="실온");
+  const doorItems=fr.filter(i=>DOOR_ICONS.includes(ico(i))),veg=fr.filter(i=>VEG_ICONS.includes(ico(i)));
+  const shelfItems=fr.filter(i=>!doorItems.includes(i)&&!veg.includes(i));
+  $("inL").innerHTML=chunk(fz,4,3).map(r=>`<div class="drawer">${r.map(foodHTML).join("")}</div>`).join("");
+  $("inR").innerHTML=chunk(shelfItems,2,2).map(r=>`<div class="shelf2">${r.map(foodHTML).join("")}</div>`).join("")
+    +`<div class="pocket">${doorItems.map(foodHTML).join("")}</div>`
+    +`<div class="crisper">${veg.map(foodHTML).join("")}</div>`;
+  $("backR").innerHTML='<div class="bin"></div><div class="bin"></div><div class="bin"></div>';
+  $("inRT").innerHTML=rt.length?rt.map(foodHTML).join(""):`<span style="font-size:12px;color:#b59a74">비어 있어요</span>`;
+  $("tL").textContent=temps.fz+"°";$("tR").textContent=temps.fr+"°";
+  $("pL").classList.toggle("hot",temps.fz>-15);$("pR").classList.toggle("hot",temps.fr>5);
+  $("cntL").textContent=fz.length+"개 보관 중";$("cntR").textContent=fr.length+"개 보관 중";
+  let [c,h]=memoHTML(fz);$("memoL").className="memo "+c;$("memoL").innerHTML=h;
+  [c,h]=memoHTML(fr);$("memoR").className="memo "+c;$("memoR").innerHTML=h;
+}
+let openId=null;
+function openFood(id){
+  const i=items.find(x=>x.id===id);if(!i)return;openId=id;
+  const d=daysLeft(i.date);
+  $("mIco").textContent=i.icon||iconFor(i.name);$("mName").textContent=i.name;
+  $("mInfo").textContent=i.place+" · "+i.date.replace(/-/g,".")+"까지 ("+ddayText(d)+")";
+  $("mNameIn").value=i.name;$("mDate").value=i.date;mPlace=i.place;markPlace();
+  $("modal").classList.add("show");
+}
+let mPlace="냉장";
+function markPlace(){document.querySelectorAll("#mPlaces button").forEach(b=>b.classList.toggle("on",b.dataset.p===mPlace));}
+document.querySelectorAll("#mPlaces button").forEach(b=>b.onclick=()=>{mPlace=b.dataset.p;markPlace();});
+$("mSave").onclick=()=>{
+  const i=items.find(x=>x.id===openId);if(!i)return;
+  const n=$("mNameIn").value.trim(),d=$("mDate").value;
+  if(!n||!d){toast("이름과 유통기한을 채워 주세요");return;}
+  i.name=n;i.date=d;i.place=mPlace;i.icon=iconFor(n);
+  saveLocal();closeModal();render();toast("✏️ "+n+" 수정했어요");
+};
+// 온도 설정
+const TEMP={fz:{min:-24,max:-14,label:"❄️ 냉동실 온도",good:[-20,-18]},fr:{min:0,max:7,label:"🧊 냉장실 온도",good:[1,4]}};
+let tKey="fz",tTmp=0;
+function tUpdate(){
+  const c=TEMP[tKey];$("tVal").textContent=tTmp+"°";$("tVal").className="val"+(tKey==="fr"?" fr":"");
+  const n=$("tNote");
+  if(tKey==="fz"){n.className="tnote"+(tTmp>-15?" bad":"");n.textContent=tTmp>-15?"⚠️ 너무 높아요. 냉동식품은 -18° 이하가 좋아요.":"보통 -18° 정도가 알맞아요. (설정 범위 -24° ~ -14°)";}
+  else{n.className="tnote"+(tTmp>5?" bad":"");n.textContent=tTmp>5?"⚠️ 너무 높아요. 음식이 빨리 상할 수 있어요.":tTmp===0?"0°는 채소가 얼 수 있어요. 보통 3° 정도가 알맞아요.":"보통 3° 정도가 알맞아요. (설정 범위 0° ~ 7°)";}
+  $("tMinus").disabled=tTmp<=c.min;$("tPlus").disabled=tTmp>=c.max;
+  $("tMinus").style.opacity=tTmp<=c.min?.35:1;$("tPlus").style.opacity=tTmp>=c.max?.35:1;
+}
+function openTemp(k){tKey=k;tTmp=temps[k];$("tTitle").textContent=TEMP[k].label;tUpdate();$("tModal").classList.add("show");}
+$("tMinus").onclick=()=>{if(tTmp>TEMP[tKey].min){tTmp--;tUpdate();}};
+$("tPlus").onclick=()=>{if(tTmp<TEMP[tKey].max){tTmp++;tUpdate();}};
+$("tOk").onclick=()=>{temps[tKey]=tTmp;saveLocal();render();$("tModal").classList.remove("show");toast((tKey==="fz"?"냉동실 ":"냉장실 ")+tTmp+"°로 설정했어요");};
+$("tClose").onclick=()=>$("tModal").classList.remove("show");
+$("tModal").onclick=e=>{if(e.target.id==="tModal")$("tModal").classList.remove("show");};
+function closeModal(){$("modal").classList.remove("show");openId=null;}
+$("mClose").onclick=closeModal;
+$("modal").onclick=e=>{if(e.target.id==="modal")closeModal();};
+$("mEat").onclick=()=>{const id=openId;closeModal();if(id)delItem(id);};
+document.querySelectorAll(".view button").forEach(b=>b.onclick=()=>{
+  document.querySelectorAll(".view button").forEach(x=>x.classList.toggle("on",x===b));
+  const f=b.dataset.v==="fridge";$("fridgeView").style.display=f?"":"none";$("listView").style.display=f?"none":"";
+});
+$("list").addEventListener("click",e=>{const id=e.target.dataset&&e.target.dataset.id;if(id)delItem(id);});
+$("days").onchange=()=>{warnDays=+$("days").value;render();saveDays();};
+
+loadLocal();render();
+function defaultDate(){const d=new Date();d.setDate(d.getDate()+7);$("date").value=ymd(d);}
+defaultDate();
+let today=ymd(new Date());
+setInterval(()=>{const t=ymd(new Date());if(t!==today){today=t;render();}},60000);
+$("status").textContent="📱 이 기기에 저장돼요 (로그인 필요 없음)";
+if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));}
+</script>
+</body>
+</html>
