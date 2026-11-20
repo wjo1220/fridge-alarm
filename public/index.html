@@ -163,7 +163,7 @@
   .temp{display:flex;align-items:center;justify-content:center;gap:16px;margin:6px 0 4px}
   .temp button{width:52px;height:52px;border-radius:50%;border:0;font-size:26px;font-family:"Jua";background:#eef3f7;color:var(--ink);cursor:pointer}
   .temp .val{min-width:110px;padding:10px 0;border-radius:16px;background:linear-gradient(180deg,#24313d,#16202a);font-family:"Jua";font-size:38px;color:#7fe3ff;text-shadow:0 0 10px rgba(127,227,255,.7)}
-  .temp .val.fr{color:#8dffcf;text-shadow:0 0 10px rgba(141,255,207,.6)}
+  .temp .val.cold{color:#8dffcf;text-shadow:0 0 10px rgba(141,255,207,.6)}
   .tnote{font-size:12.5px;color:var(--sub);min-height:36px;margin:8px 0 14px;line-height:1.45}
   .tnote.bad{color:#e0622f}
   .edit{text-align:left;margin:0 0 14px}
@@ -474,7 +474,7 @@ $("mSave").onclick=()=>{
 const TEMP={fz:{min:-24,max:-14,label:"❄️ 냉동실 온도",good:[-20,-18]},fr:{min:0,max:7,label:"🧊 냉장실 온도",good:[1,4]}};
 let tKey="fz",tTmp=0;
 function tUpdate(){
-  const c=TEMP[tKey];$("tVal").textContent=tTmp+"°";$("tVal").className="val"+(tKey==="fr"?" fr":"");
+  const c=TEMP[tKey];$("tVal").textContent=tTmp+"°";$("tVal").className="val"+(tKey==="fr"?" cold":"");
   const n=$("tNote");
   if(tKey==="fz"){n.className="tnote"+(tTmp>-15?" bad":"");n.textContent=tTmp>-15?"⚠️ 너무 높아요. 냉동식품은 -18° 이하가 좋아요.":"보통 -18° 정도가 알맞아요. (설정 범위 -24° ~ -14°)";}
   else{n.className="tnote"+(tTmp>5?" bad":"");n.textContent=tTmp>5?"⚠️ 너무 높아요. 음식이 빨리 상할 수 있어요.":tTmp===0?"0°는 채소가 얼 수 있어요. 보통 3° 정도가 알맞아요.":"보통 3° 정도가 알맞아요. (설정 범위 0° ~ 7°)";}
