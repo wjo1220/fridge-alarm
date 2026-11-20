@@ -120,7 +120,7 @@
   .cab.left.open .door{transform:perspective(1100px) rotateY(-115deg)}.cab.right.open .door{transform:perspective(1100px) rotateY(115deg)}
   .door .front>*{transition:opacity .2s .25s}
   .cab.open .door .front>*{opacity:0;transition-delay:.15s}
-  .front::after{content:"";position:absolute;inset:0;border-radius:10px;opacity:0;transition:opacity .2s .25s;
+  .front::after{content:"";position:absolute;inset:0;border-radius:10px;opacity:0;pointer-events:none;transition:opacity .2s .25s;
       background:repeating-linear-gradient(180deg,transparent 0 70px,rgba(150,195,228,.9) 70px 74px,rgba(200,225,245,.55) 74px 96px,transparent 96px 110px),
       linear-gradient(180deg,#f4f8fb,#dfe7ee);box-shadow:inset 0 0 0 5px #d3dde6}
   .cab.open .front::after{opacity:1;transition-delay:.15s}
@@ -133,7 +133,7 @@
       background:linear-gradient(180deg,#f4f8fb,#e0e8ef);box-shadow:inset 0 0 0 4px #d3dde6}
   .bin{flex:1;display:flex;flex-wrap:wrap;justify-content:center;align-content:flex-end;gap:1px;padding:0 2px;
       border:2px solid rgba(150,195,228,.85);border-top:0;border-radius:0 0 8px 8px;background:linear-gradient(180deg,transparent 45%,rgba(190,220,245,.45))}
-  .handle2{position:absolute;top:120px;width:9px;height:150px;border-radius:6px;
+  .handle2{position:absolute;top:150px;width:9px;height:150px;border-radius:6px;
       background:linear-gradient(90deg,#8e9ba7,#f3f6f8 45%,#9eabb6);box-shadow:3px 4px 7px rgba(0,0,0,.22)}
   .cab.left .handle2{right:9px}.cab.right .handle2{left:9px}
   .panel{position:absolute;top:26px;left:50%;transform:translateX(-50%);width:74px;padding:7px 0 6px;border-radius:10px;text-align:center;
@@ -141,7 +141,7 @@
   .panel b{display:block;font-family:"Jua";font-weight:400;font-size:20px;color:#7fe3ff;text-shadow:0 0 8px rgba(127,227,255,.7);line-height:1.1}
   .panel span{font-size:10px;color:#9fb6c8}
   .cab.right .panel b{color:#8dffcf;text-shadow:0 0 8px rgba(141,255,207,.6)}
-  .cnt{position:absolute;top:96px;left:0;right:0;text-align:center;font-size:11.5px;color:#6f8394}
+  .cnt{position:absolute;top:118px;left:0;right:0;text-align:center;font-size:11.5px;color:#6f8394}
   .memo{position:absolute;left:50%;bottom:58px;width:82px;transform:translateX(-50%) rotate(-4deg);padding:16px 6px 7px;font-size:11px;line-height:1.45;
       background:#fff3a6;color:#5b4a12;box-shadow:2px 4px 6px rgba(0,0,0,.15);text-align:center;border-radius:2px}
   .memo::before{content:"";position:absolute;top:-6px;left:50%;transform:translateX(-50%);width:16px;height:16px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#ff9a9a,#e04848)}
@@ -163,7 +163,10 @@
   .basket .ctitle{font-family:"Jua";font-size:13px;color:#a5865a}
   .basket .row{display:flex;flex-wrap:wrap;gap:4px;min-height:58px;align-items:flex-end}
   .hint{font-size:12px;color:var(--sub);text-align:center;margin-top:10px}
-  .panel{cursor:pointer}
+  .panel{cursor:pointer;width:86px!important;padding:9px 0 7px!important;transition:transform .12s}
+  .panel:active{transform:translateX(-50%) scale(.94)}
+  .panel::before{content:"";position:absolute;left:-22px;right:-22px;top:-20px;bottom:-34px;border-radius:16px}
+  .panel span::after{content:" · 설정";color:#7fa2bd}
   .panel::after{content:"⚙️";position:absolute;right:-7px;top:-7px;font-size:11px;background:#fff;border-radius:50%;width:18px;height:18px;line-height:18px;box-shadow:0 1px 3px rgba(0,0,0,.2)}
   .panel.hot{box-shadow:inset 0 0 0 2px #ff8a65,0 0 10px rgba(255,120,80,.6)}
   .temp{display:flex;align-items:center;justify-content:center;gap:16px;margin:6px 0 4px}
