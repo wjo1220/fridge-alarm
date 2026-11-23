@@ -195,6 +195,12 @@
   .sheet .btns{display:flex;gap:8px}
   .sheet .btns button{flex:1;font-family:"Jua";font-size:16px;padding:12px;border:0;border-radius:14px;cursor:pointer}
   .sheet .eat{background:var(--mint);color:#fff}.sheet .close{background:#eef3f7;color:var(--ink)}
+  /* 알림 */
+  .push h2{margin-bottom:6px}
+  .pnote{font-size:13.5px;color:var(--sub);margin:0 0 12px;line-height:1.5}
+  .pbtns{display:flex;gap:8px}
+  .ghost{flex:1;font-family:"Jua";font-size:15px;padding:12px 6px;border:1.5px solid var(--line);border-radius:14px;background:#fff;color:var(--ink);cursor:pointer}
+  .ghost:active{background:var(--sky-soft)}
 </style>
 </head>
 <body>
@@ -261,6 +267,15 @@
       <option value="3" selected>3일 전</option><option value="5">5일 전</option><option value="7">7일 전</option>
     </select>
     <span>부터 알려주기</span>
+  </div>
+  <div class="card push">
+    <h2>📲 앱을 닫아도 알림 받기</h2>
+    <p class="pnote" id="pushNote">매일 아침 9시에 유통기한이 가까운 음식을 알려드려요.</p>
+    <button class="primary" id="pushOn">🔔 알림 켜기</button>
+    <div class="pbtns" id="pushOnBtns" style="display:none">
+      <button class="ghost" id="pushTest">테스트 알림 보내기</button>
+      <button class="ghost" id="pushOff">알림 끄기</button>
+    </div>
   </div>
   <div class="foot" id="status">불러오는 중…</div>
 </div>
@@ -329,7 +344,7 @@ function toast(m,undo){const t=$("toast");t.textContent=m;
 
 let temps={fz:-18,fr:3};
 function loadLocal(){try{const tp=JSON.parse(localStorage.getItem("fridge-temp")||"null");if(tp)temps=tp;}catch(e){}try{items=JSON.parse(localStorage.getItem("fridge-items")||"[]");warnDays=+(localStorage.getItem("fridge-days")||3);}catch(e){}}
-function saveLocal(){try{localStorage.setItem("fridge-items",JSON.stringify(items));localStorage.setItem("fridge-days",warnDays);localStorage.setItem("fridge-temp",JSON.stringify(temps));}catch(e){}}
+function saveLocal(){try{localStorage.setItem("fridge-items",JSON.stringify(items));localStorage.setItem("fridge-days",warnDays);localStorage.setItem("fridge-temp",JSON.stringify(temps));}catch(e){}if(typeof syncPush==="function")syncPush();}
 
 function render(){
   $("days").value=String(warnDays);
@@ -511,6 +526,58 @@ let today=ymd(new Date());
 setInterval(()=>{const t=ymd(new Date());if(t!==today){today=t;render();}},60000);
 $("status").textContent="📱 이 기기에 저장돼요 (로그인 필요 없음)";
 if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));}
+
+// ===== 앱을 닫아도 오는 알림 =====
+const PUSH_OK="serviceWorker" in navigator&&"PushManager" in window&&"Notification" in window;
+const pushIsOn=()=>{try{return localStorage.getItem("fridge-push")==="1";}catch(e){return false;}};
+function b64uToBytes(s){s=s.replace(/-/g,"+").replace(/_/g,"/");const r=atob(s+"===".slice((s.length+3)%4));return Uint8Array.from(r,c=>c.charCodeAt(0));}
+function pushBody(sub){return JSON.stringify({sub:{endpoint:sub.endpoint},items:items.map(i=>({name:i.name,date:i.date})),warnDays,tz:new Date().getTimezoneOffset()});}
+async function getSub(){const reg=await navigator.serviceWorker.ready;return reg.pushManager.getSubscription();}
+async function api(path,body){const r=await fetch("api/"+path,{method:"POST",headers:{"content-type":"application/json"},body});const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error||("서버 오류 "+r.status));return j;}
+function renderPush(){
+  const on=pushIsOn();
+  $("pushOn").style.display=on?"none":"";$("pushOnBtns").style.display=on?"flex":"none";
+  let note="매일 아침 9시에 유통기한이 가까운 음식을 알려드려요.";
+  if(!PUSH_OK)note="이 브라우저에서는 알림을 받을 수 없어요. (아이폰은 공유 버튼 → '홈 화면에 추가' 후 거기서 열어 주세요)";
+  else if(Notification.permission==="denied")note="알림이 차단돼 있어요. 휴대폰 설정에서 이 앱(또는 크롬)의 알림을 허용해 주세요.";
+  else if(on)note="✅ 알림이 켜져 있어요. 매일 아침 9시에 임박한 음식이 있으면 알려드려요.";
+  $("pushNote").textContent=note;
+}
+async function enablePush(){
+  if(!PUSH_OK){toast("이 브라우저는 알림을 지원하지 않아요");return;}
+  const btn=$("pushOn");btn.disabled=true;
+  try{
+    const perm=await Notification.requestPermission();
+    if(perm!=="granted"){toast("알림 권한을 허용해 주세요");return;}
+    const reg=await navigator.serviceWorker.ready;
+    let sub=await reg.pushManager.getSubscription();
+    if(!sub){const r=await fetch("api/vapid");const {key}=await r.json();sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:b64uToBytes(key)});}
+    await api("subscribe",pushBody(sub));
+    localStorage.setItem("fridge-push","1");toast("🔔 알림을 켰어요");
+  }catch(e){toast("알림을 켜지 못했어요: "+e.message);}
+  finally{btn.disabled=false;renderPush();}
+}
+async function disablePush(){
+  try{const sub=await getSub();if(sub){await api("unsubscribe",JSON.stringify({endpoint:sub.endpoint})).catch(()=>{});await sub.unsubscribe();}}catch(e){}
+  try{localStorage.removeItem("fridge-push");}catch(e){}
+  toast("알림을 껐어요");renderPush();
+}
+async function testPush(){
+  try{
+    const sub=await getSub();if(!sub)throw new Error("알림을 다시 켜 주세요");
+    await api("subscribe",pushBody(sub));
+    const r=await api("test",JSON.stringify({endpoint:sub.endpoint}));
+    toast(r.status>=200&&r.status<300?"📨 보냈어요! 몇 초 안에 알림이 와요":"보내기 실패 ("+r.status+")");
+  }catch(e){toast("테스트 실패: "+e.message);}
+}
+let syncT;
+function syncPush(){
+  if(!PUSH_OK||!pushIsOn())return;
+  clearTimeout(syncT);
+  syncT=setTimeout(async()=>{try{const sub=await getSub();if(sub)await api("subscribe",pushBody(sub));}catch(e){}},800);
+}
+$("pushOn").onclick=enablePush;$("pushOff").onclick=disablePush;$("pushTest").onclick=testPush;
+renderPush();syncPush();
 </script>
 </body>
 </html>
