@@ -59,9 +59,17 @@
   .primary:active{transform:translateY(1px)}
 
   /* 목록 */
-  .tabs{display:flex;gap:6px;margin-bottom:12px;background:#f0f5f9;padding:4px;border-radius:14px}
-  .tabs button{flex:1;font-family:inherit;padding:9px 0;font-size:14px;border:0;border-radius:11px;background:transparent;color:var(--sub);cursor:pointer}
-  .tabs button.on{background:#fff;color:var(--ink);font-weight:700;box-shadow:0 2px 6px rgba(0,0,0,.06)}
+  .ptabs{display:flex;gap:6px;background:#f0f5f9;padding:5px;border-radius:16px;margin-bottom:12px}
+  .ptabs button{flex:1;font-family:"Jua";font-size:16px;padding:11px 0;border:0;border-radius:12px;background:transparent;color:var(--sub);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px}
+  .ptabs button.on{background:#fff;color:var(--ink);box-shadow:0 2px 8px rgba(60,110,160,.12)}
+  .ptabs i{font-style:normal;font-size:12px;min-width:20px;padding:1px 6px;border-radius:99px;background:#e3ebf2;color:var(--sub)}
+  .ptabs button.on i{background:var(--sky-soft);color:#2b7fd4}
+  .ptabs i.warn{background:var(--orange)!important;color:#fff!important}
+  .phead{display:flex;justify-content:flex-end;margin:-2px 0 8px;min-height:4px}
+  .tempbtn{font-family:"Jua";font-size:14px;border:0;border-radius:99px;padding:6px 12px;background:#24313d;color:#8dffcf;cursor:pointer}
+  .tempbtn.fz{color:#7fe3ff}.tempbtn.hot{color:#ffb199}
+  .tempbtn span{color:#9fb6c8;font-size:12px;margin-left:4px}
+  .item{cursor:pointer}
   .item{display:flex;align-items:center;gap:12px;padding:12px;border-radius:18px;margin-bottom:8px;background:#fafcfe;border:1.5px solid var(--line);animation:in .3s ease}
   @keyframes in{from{opacity:0;transform:translateY(6px)}to{opacity:1}}
   .item.warn{background:#fffaf4;border-color:#ffe0bd}
@@ -89,87 +97,6 @@
   .toast{pointer-events:none;transform:translateX(-50%) translateY(200px)!important}
   .toast.show{pointer-events:auto;transform:translateX(-50%) translateY(0)!important}
 
-  /* 양문형 냉장고 */
-  .view{display:flex;gap:6px;margin:-4px 0 14px}
-  .view button{flex:1;font-family:"Jua";font-size:15px;padding:10px 0;border-radius:14px;border:1.5px solid var(--line);background:#fff;color:var(--sub);cursor:pointer}
-  .view button.on{border-color:var(--sky);background:var(--sky-soft);color:#2b7fd4}
-  .stage{overflow:hidden;padding:14px 0 4px;margin:0 -18px}
-  .fr{position:relative;width:min(280px,calc(100% - 130px));height:500px;margin:0 auto;border-radius:20px 20px 12px 12px;
-      background:linear-gradient(90deg,#aeb9c3,#d7dfe6 20%,#e9eef2 50%,#d7dfe6 80%,#aeb9c3);
-      box-shadow:0 26px 30px -18px rgba(30,60,90,.55),inset 0 0 0 2px #c3cdd6}
-  .fr .top{position:absolute;left:0;right:0;top:-10px;height:14px;border-radius:12px 12px 0 0;background:linear-gradient(180deg,#e6ecf1,#c3ccd5)}
-  .cab{position:absolute;top:8px;bottom:8px;width:calc(50% - 10px)}
-  .cab.left{left:7px}.cab.right{right:7px}
-  .inside{position:absolute;inset:0;border-radius:10px;overflow-y:auto;padding:24px 6px 6px;
-      background:linear-gradient(180deg,#ffffff,#e9f2f8);box-shadow:inset 0 0 0 3px #dfe8ef,inset 0 14px 24px rgba(120,160,200,.22)}
-  .cab.left .inside{background:linear-gradient(180deg,#f3f8ff,#d6e6fa)}
-  .lamp{position:absolute;top:6px;left:50%;transform:translateX(-50%);width:44px;height:6px;border-radius:9px;background:#e3eaf0;transition:.4s}
-  .cab.open .lamp{background:#fff7cf;box-shadow:0 0 18px 8px rgba(255,240,170,.75)}
-  .inside .ctitle{font-family:"Jua";font-size:12px;color:#7a9bb8;text-align:center;margin:0 0 4px}
-  .shelf2{display:flex;flex-wrap:wrap;justify-content:center;gap:2px;min-height:60px;align-items:flex-end;padding:4px 0;
-      border-bottom:5px solid rgba(165,205,235,.65);box-shadow:0 5px 0 -2px rgba(255,255,255,.7)}
-  .drawer{position:relative;min-height:86px;margin:0 0 8px;padding:4px 2px 12px;border-radius:9px;display:flex;flex-wrap:wrap;justify-content:center;align-content:flex-end;gap:2px;
-      background:linear-gradient(180deg,rgba(255,255,255,.2),rgba(190,215,245,.55));border:1.5px solid rgba(140,180,225,.75)}
-  .drawer::after{content:"";position:absolute;bottom:4px;left:50%;transform:translateX(-50%);width:36%;height:4px;border-radius:4px;background:rgba(120,160,210,.6)}
-  .crisper{position:relative;min-height:82px;margin-top:8px;padding:4px 2px 12px;border-radius:9px;display:flex;flex-wrap:wrap;justify-content:center;align-content:flex-end;gap:2px;
-      background:linear-gradient(180deg,rgba(230,250,238,.4),rgba(175,225,198,.65));border:1.5px solid #9fd6b7}
-  .crisper::after{content:"🥬 채소·과일칸";position:absolute;bottom:1px;left:0;right:0;text-align:center;font-size:9.5px;color:#5aa57e}
-  .pocket{position:relative;min-height:70px;margin-top:8px;padding:4px 2px 12px;display:flex;flex-wrap:wrap;justify-content:center;align-content:flex-end;gap:2px;
-      border:2px solid rgba(150,195,228,.9);border-top:0;border-radius:0 0 10px 10px;background:linear-gradient(180deg,transparent 30%,rgba(190,220,245,.5))}
-  .pocket::after{content:"🥛 음료·소스칸";position:absolute;bottom:1px;left:0;right:0;text-align:center;font-size:9.5px;color:#5b8fbf}
-  .door{position:absolute;inset:0;transform:perspective(1100px) rotateY(0deg);transition:transform .8s cubic-bezier(.25,.85,.3,1),filter .8s;cursor:pointer;z-index:3;-webkit-tap-highlight-color:transparent}
-  .cab.left .door{transform-origin:left center}.cab.right .door{transform-origin:right center}
-  .cab.left.open .door{transform:perspective(1100px) rotateY(-115deg)}.cab.right.open .door{transform:perspective(1100px) rotateY(115deg)}
-  .door .front>*{transition:opacity .2s .25s}
-  .cab.open .door .front>*{opacity:0;transition-delay:.15s}
-  .front::after{content:"";position:absolute;inset:0;border-radius:10px;opacity:0;pointer-events:none;transition:opacity .2s .25s;
-      background:repeating-linear-gradient(180deg,transparent 0 70px,rgba(150,195,228,.9) 70px 74px,rgba(200,225,245,.55) 74px 96px,transparent 96px 110px),
-      linear-gradient(180deg,#f4f8fb,#dfe7ee);box-shadow:inset 0 0 0 5px #d3dde6}
-  .cab.open .front::after{opacity:1;transition-delay:.15s}
-  .face{position:absolute;inset:0;border-radius:10px}
-  .front{background:
-      repeating-linear-gradient(90deg,rgba(255,255,255,0) 0 2px,rgba(90,110,130,.025) 2px 3px),
-      linear-gradient(100deg,#e4eaef 0%,#fbfcfd 30%,#e7ecf0 55%,#f6f8fa 80%,#dde4ea 100%);
-      box-shadow:inset 0 0 0 1px #c8d2db,inset 0 -10px 18px rgba(0,0,0,.05)}
-  .back{display:none;padding:20px 6px 6px;display:flex;flex-direction:column;gap:8px;
-      background:linear-gradient(180deg,#f4f8fb,#e0e8ef);box-shadow:inset 0 0 0 4px #d3dde6}
-  .bin{flex:1;display:flex;flex-wrap:wrap;justify-content:center;align-content:flex-end;gap:1px;padding:0 2px;
-      border:2px solid rgba(150,195,228,.85);border-top:0;border-radius:0 0 8px 8px;background:linear-gradient(180deg,transparent 45%,rgba(190,220,245,.45))}
-  .handle2{position:absolute;top:150px;width:9px;height:150px;border-radius:6px;
-      background:linear-gradient(90deg,#8e9ba7,#f3f6f8 45%,#9eabb6);box-shadow:3px 4px 7px rgba(0,0,0,.22)}
-  .cab.left .handle2{right:9px}.cab.right .handle2{left:9px}
-  .panel{position:absolute;top:26px;left:50%;transform:translateX(-50%);width:74px;padding:7px 0 6px;border-radius:10px;text-align:center;
-      background:linear-gradient(180deg,#24313d,#16202a);box-shadow:inset 0 0 0 2px #3a4a58,0 2px 4px rgba(0,0,0,.2)}
-  .panel b{display:block;font-family:"Jua";font-weight:400;font-size:20px;color:#7fe3ff;text-shadow:0 0 8px rgba(127,227,255,.7);line-height:1.1}
-  .panel span{font-size:10px;color:#9fb6c8}
-  .cab.right .panel b{color:#8dffcf;text-shadow:0 0 8px rgba(141,255,207,.6)}
-  .cnt{position:absolute;top:118px;left:0;right:0;text-align:center;font-size:11.5px;color:#6f8394}
-  .memo{position:absolute;left:50%;bottom:58px;width:82px;transform:translateX(-50%) rotate(-4deg);padding:16px 6px 7px;font-size:11px;line-height:1.45;
-      background:#fff3a6;color:#5b4a12;box-shadow:2px 4px 6px rgba(0,0,0,.15);text-align:center;border-radius:2px}
-  .memo::before{content:"";position:absolute;top:-6px;left:50%;transform:translateX(-50%);width:16px;height:16px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#ff9a9a,#e04848)}
-  .memo.ok{background:#d9f7ea;color:#25624c}
-  .tap{position:absolute;bottom:16px;left:0;right:0;text-align:center;font-size:11px;color:#8a9aa8;animation:blink 2.2s infinite}
-  @keyframes blink{50%{opacity:.35}}
-  .cab.right .tap{animation-delay:1.1s}
-  .feet{display:flex;justify-content:space-between;width:min(240px,calc(100% - 170px));margin:0 auto}
-  .feet i{width:26px;height:8px;background:#b5c2ce;border-radius:0 0 8px 8px}
-  .food{width:42px;display:flex;flex-direction:column;align-items:center;cursor:pointer;background:none;border:0;padding:0;font-family:inherit}
-  .food .e{font-size:25px;line-height:1.15;filter:drop-shadow(0 3px 2px rgba(0,0,0,.14))}
-  .food .t{font-family:"Jua";font-size:10px;padding:0 5px;border-radius:99px;background:var(--mint-soft);color:#1f9e7f;white-space:nowrap}
-  .food.warn .t{background:var(--orange);color:#fff}.food.bad .t{background:var(--red);color:#fff}
-  .food.warn .e,.food.bad .e{animation:shake 1.6s infinite}
-  @keyframes shake{0%,86%,100%{transform:none}90%{transform:rotate(-10deg)}95%{transform:rotate(10deg)}}
-  .food .n{font-size:9.5px;color:var(--sub);max-width:42px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .bin .food .n{display:none}
-  .basket{width:min(280px,calc(100% - 130px));margin:16px auto 0;background:linear-gradient(180deg,#f8eddc,#efdcc0);border-radius:10px 10px 22px 22px;padding:8px 10px 6px;box-shadow:inset 0 -4px 0 #e0c79f}
-  .basket .ctitle{font-family:"Jua";font-size:13px;color:#a5865a}
-  .basket .row{display:flex;flex-wrap:wrap;gap:4px;min-height:58px;align-items:flex-end}
-  .hint{font-size:12px;color:var(--sub);text-align:center;margin-top:10px}
-  .panel{cursor:pointer;width:86px!important;padding:9px 0 7px!important;transition:transform .12s}
-  .panel:active{transform:translateX(-50%) scale(.94)}
-  .panel::before{content:"";position:absolute;left:-22px;right:-22px;top:-20px;bottom:-34px;border-radius:16px}
-  .panel::after{content:"⚙️";position:absolute;right:-7px;top:-7px;font-size:11px;background:#fff;border-radius:50%;width:18px;height:18px;line-height:18px;box-shadow:0 1px 3px rgba(0,0,0,.2)}
-  .panel.hot{box-shadow:inset 0 0 0 2px #ff8a65,0 0 10px rgba(255,120,80,.6)}
   .temp{display:flex;align-items:center;justify-content:center;gap:16px;margin:6px 0 4px}
   .temp button{width:52px;height:52px;border-radius:50%;border:0;font-size:26px;font-family:"Jua";background:#eef3f7;color:var(--ink);cursor:pointer}
   .temp .val{min-width:110px;padding:10px 0;border-radius:16px;background:linear-gradient(180deg,#24313d,#16202a);font-family:"Jua";font-size:38px;color:#7fe3ff;text-shadow:0 0 10px rgba(127,227,255,.7)}
@@ -235,22 +162,14 @@
   <div id="alert" class="alert"></div>
 
   <div class="card main">
-    <div class="view">
-      <button data-v="fridge" class="on">🧊 냉장고</button>
-      <button data-v="list">📋 목록</button>
+    <div class="ptabs" id="ptabs">
+      <button data-f="냉장" class="on">🧊 냉장<i id="c냉장">0</i></button>
+      <button data-f="냉동">❄️ 냉동<i id="c냉동">0</i></button>
+      <button data-f="실온">🏠 실온<i id="c실온">0</i></button>
     </div>
-    <div id="fridgeView"></div>
-    <div id="listView" style="display:none">
-    <div class="tabs">
-      <button data-f="all" class="on">전체</button>
-      <button data-f="냉장">냉장</button>
-      <button data-f="냉동">냉동</button>
-      <button data-f="실온">실온</button>
-    </div>
+    <div class="phead" id="phead"></div>
     <div id="list"></div>
-    </div>
   </div>
-
 </div>
 <button class="fab" id="fab">＋ 음식 넣기</button>
 <div class="modal bottom" id="addModal"><div class="sheet wide">
@@ -351,7 +270,7 @@ function iconFor(name){
   return best||"🍽️";
 }
 
-let items=[],filter="all",warnDays=3,place="냉장";
+let items=[],filter="냉장",warnDays=3,place="냉장";
 const $=id=>document.getElementById(id);
 const pad=n=>String(n).padStart(2,"0");
 const ymd=d=>d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());
@@ -367,9 +286,11 @@ function saveLocal(){try{localStorage.setItem("fridge-items",JSON.stringify(item
 
 function render(){
   $("days").value=String(warnDays);
-  if(typeof renderFridge==="function")renderFridge();
+  for(const pl of ["냉장","냉동","실온"]){const l=items.filter(i=>i.place===pl),c=$("c"+pl);c.textContent=l.length;c.classList.toggle("warn",l.some(i=>daysLeft(i.date)<=warnDays));}
+  const tk=filter==="냉동"?"fz":filter==="냉장"?"fr":"";
+  $("phead").innerHTML=tk?`<button class="tempbtn ${tk}${(tk==="fz"?temps.fz>-15:temps.fr>5)?" hot":""}" data-temp="${tk}">🌡️ ${temps[tk]}°<span>온도 설정</span></button>`:"";
   const fb=document.getElementById("fab");if(fb)fb.classList.toggle("pulse",!items.length);
-  const list=items.filter(i=>filter==="all"||i.place===filter).sort((a,b)=>a.date.localeCompare(b.date));
+  const list=items.filter(i=>i.place===filter).sort((a,b)=>a.date.localeCompare(b.date));
   $("list").innerHTML=list.length?list.map(i=>{
     const d=daysLeft(i.date);
     const cls=d<0?"bad":d<=warnDays?"warn":"";
@@ -379,12 +300,12 @@ function render(){
     if(i.added){const total=Math.max(1,Math.round((new Date(i.date)-new Date(i.added))/86400000));pct=Math.max(0,Math.min(100,d/total*100));}
     if(d<0)pct=100;
     const pIco=i.place==="냉동"?"❄️":i.place==="실온"?"🏠":"🧊";
-    return `<div class="item ${cls}"><div class="ico">${i.icon||iconFor(i.name)}</div>
+    return `<div class="item ${cls}" data-open="${i.id}"><div class="ico">${i.icon||iconFor(i.name)}</div>
       <div class="info"><div class="name">${esc(i.name)}</div>
-        <div class="meta">${pIco} ${esc(i.place)} · ${i.date.replace(/-/g,".")}까지</div>
+        <div class="meta">${i.date.replace(/-/g,".")}까지</div>
         <div class="bar"><i style="width:${pct}%"></i></div></div>
       <div class="right"><div class="badge">${txt}</div><button class="del" data-id="${i.id}">다 먹음 ✓</button></div></div>`;
-  }).join(""):`<div class="empty"><div>🫙</div>${filter==="all"?"아직 넣은 음식이 없어요":"여기엔 아무것도 없어요"}</div>`;
+  }).join(""):`<div class="empty"><div>🫙</div>${filter==="실온"?"실온 보관 음식이 없어요":filter+"실이 비어 있어요"}</div>`;
 
   const expired=items.filter(i=>daysLeft(i.date)<0);
   const soon=items.filter(i=>{const d=daysLeft(i.date);return d>=0&&d<=warnDays;});
@@ -397,7 +318,7 @@ function render(){
 }
 
 async function addItem(it){
-  items.push(it);render();if(it.place==="냉동")toggleDoor("left",true);if(it.place==="냉장")toggleDoor("right",true);toast(it.icon+" "+it.name+" 넣었어요");
+  items.push(it);setTab(it.place);toast(it.icon+" "+it.name+" 넣었어요");
   saveLocal();
 }
 async function delItem(id){
@@ -424,71 +345,10 @@ $("form").addEventListener("submit",e=>{
 });
 document.querySelectorAll("#places button").forEach(b=>b.onclick=()=>{place=b.dataset.p;document.querySelectorAll("#places button").forEach(x=>x.classList.toggle("on",x===b));});
 document.querySelectorAll(".quick button").forEach(b=>b.onclick=()=>{const d=new Date();d.setDate(d.getDate()+ +b.dataset.d);$("date").value=ymd(d);});
-document.querySelectorAll(".tabs button").forEach(b=>b.onclick=()=>{filter=b.dataset.f;document.querySelectorAll(".tabs button").forEach(x=>x.classList.toggle("on",x===b));render();});
+function setTab(f){filter=f;document.querySelectorAll("#ptabs button").forEach(x=>x.classList.toggle("on",x.dataset.f===f));render();}
+document.querySelectorAll("#ptabs button").forEach(b=>b.onclick=()=>setTab(b.dataset.f));
 
 function ddayText(d){return d<0?(-d)+"일 지남":d===0?"오늘까지":"D-"+d;}
-function foodHTML(i){
-  const d=daysLeft(i.date),cls=d<0?"bad":d<=warnDays?"warn":"";
-  return `<button class="food ${cls}" data-open="${i.id}"><span class="e">${i.icon||iconFor(i.name)}</span><span class="t">${ddayText(d)}</span><span class="n">${esc(i.name)}</span></button>`;
-}
-const DOOR_ICONS="🥛🧃🥤🍺🍷🍶💧🥫🍯🥚☕";
-const VEG_ICONS="🥬🥕🍅🥒🍆🌽🌶️🫑🍄🥦🧅🧄🥔🍠🥑🍎🍐🍌🍓🍇🍊🍋🍉🍑🍒🥝🥭🍍🫐🍈🫘";
-const ico=i=>i.icon||iconFor(i.name);
-function chunk(arr,n,min){const o=[];for(let k=0;k<arr.length;k+=n)o.push(arr.slice(k,k+n));while(o.length<min)o.push([]);return o;}
-let doorOpen={left:false,right:false};
-function buildFridge(){
-  $("fridgeView").innerHTML=`
-  <div class="stage"><div class="fr"><div class="top"></div>
-    <div class="cab left" id="cabL">
-      <div class="inside"><div class="lamp"></div><div class="ctitle">❄️ 냉동실</div><div id="inL"></div></div>
-      <div class="door" data-door="left">
-        <div class="face front"><div class="panel" data-temp="fz" id="pL"><b id="tL"></b><span>냉동</span></div><div class="cnt" id="cntL"></div>
-          <div class="memo" id="memoL"></div><div class="handle2"></div><div class="tap">👆 열기</div></div>
-      </div>
-    </div>
-    <div class="cab right" id="cabR">
-      <div class="inside"><div class="lamp"></div><div class="ctitle">🧊 냉장실</div><div id="inR"></div></div>
-      <div class="door" data-door="right">
-        <div class="face front"><div class="panel" data-temp="fr" id="pR"><b id="tR"></b><span>냉장</span></div><div class="cnt" id="cntR"></div>
-          <div class="memo" id="memoR"></div><div class="handle2"></div><div class="tap">👆 열기</div></div>
-      </div>
-    </div>
-  </div><div class="feet"><i></i><i></i></div></div>
-  <div class="basket"><div class="ctitle">🏠 실온 바구니</div><div class="row" id="inRT"></div></div>
-`;
-  $("fridgeView").addEventListener("click",e=>{
-    const tp=e.target.closest("[data-temp]");if(tp){e.stopPropagation();openTemp(tp.dataset.temp);return;}
-    const f=e.target.closest("[data-open]");if(f){e.stopPropagation();openFood(f.dataset.open);return;}
-    const d=e.target.closest("[data-door]");if(d)toggleDoor(d.dataset.door);
-  });
-}
-function toggleDoor(side,force){
-  doorOpen[side]=force===undefined?!doorOpen[side]:force;
-  $(side==="left"?"cabL":"cabR").classList.toggle("open",doorOpen[side]);
-}
-function memoHTML(list){
-  const urgent=list.filter(i=>daysLeft(i.date)<=warnDays);
-  if(!list.length)return["ok","텅 비었어요<br>🫙"];
-  if(!urgent.length)return["ok","모두 싱싱!<br>👍"];
-  return["",urgent.slice(0,3).map(i=>ico(i)+" "+esc(i.name)+"<br><b>"+ddayText(daysLeft(i.date))+"</b>").join("<br>")];
-}
-function renderFridge(){
-  if(!$("cabL"))buildFridge();
-  const sorted=[...items].sort((a,b)=>a.date.localeCompare(b.date));
-  const fz=sorted.filter(i=>i.place==="냉동"),fr=sorted.filter(i=>i.place==="냉장"),rt=sorted.filter(i=>i.place==="실온");
-  const doorItems=fr.filter(i=>DOOR_ICONS.includes(ico(i))),veg=fr.filter(i=>VEG_ICONS.includes(ico(i)));
-  const shelfItems=fr.filter(i=>!doorItems.includes(i)&&!veg.includes(i));
-  $("inL").innerHTML=chunk(fz,4,3).map(r=>`<div class="drawer">${r.map(foodHTML).join("")}</div>`).join("");
-  $("inR").innerHTML=chunk(shelfItems,2,2).map(r=>`<div class="shelf2">${r.map(foodHTML).join("")}</div>`).join("")
-    +`<div class="pocket">${doorItems.map(foodHTML).join("")}</div>`
-    +`<div class="crisper">${veg.map(foodHTML).join("")}</div>`;
-  $("inRT").innerHTML=rt.length?rt.map(foodHTML).join(""):`<span style="font-size:12px;color:#b59a74">비어 있어요</span>`;
-  $("tL").textContent=temps.fz+"°";$("tR").textContent=temps.fr+"°";
-  $("pL").classList.toggle("hot",temps.fz>-15);$("pR").classList.toggle("hot",temps.fr>5);
-  $("cntL").textContent=fz.length+"개";$("cntR").textContent=fr.length+"개";
-  let [c,h]=memoHTML(fz);$("memoL").className="memo "+c;$("memoL").innerHTML=h;
-  [c,h]=memoHTML(fr);$("memoR").className="memo "+c;$("memoR").innerHTML=h;
-}
 let openId=null;
 function openFood(id){
   const i=items.find(x=>x.id===id);if(!i)return;openId=id;
@@ -529,11 +389,8 @@ function closeModal(){$("modal").classList.remove("show");openId=null;}
 $("mClose").onclick=closeModal;
 $("modal").onclick=e=>{if(e.target.id==="modal")closeModal();};
 $("mEat").onclick=()=>{const id=openId;closeModal();if(id)delItem(id);};
-document.querySelectorAll(".view button").forEach(b=>b.onclick=()=>{
-  document.querySelectorAll(".view button").forEach(x=>x.classList.toggle("on",x===b));
-  const f=b.dataset.v==="fridge";$("fridgeView").style.display=f?"":"none";$("listView").style.display=f?"none":"";
-});
-$("list").addEventListener("click",e=>{const id=e.target.dataset&&e.target.dataset.id;if(id)delItem(id);});
+$("list").addEventListener("click",e=>{const id=e.target.dataset&&e.target.dataset.id;if(id){delItem(id);return;}const it=e.target.closest("[data-open]");if(it)openFood(it.dataset.open);});
+$("phead").addEventListener("click",e=>{const t=e.target.closest("[data-temp]");if(t)openTemp(t.dataset.temp);});
 $("days").onchange=()=>{warnDays=+$("days").value;render();saveDays();};
 
 loadLocal();render();
@@ -543,7 +400,7 @@ let today=ymd(new Date());
 setInterval(()=>{const t=ymd(new Date());if(t!==today){today=t;render();}},60000);
 $("status").textContent="📱 음식 목록은 이 휴대폰에 저장돼요";
 function sheet(id,show){$(id).classList.toggle("show",show);}
-$("fab").onclick=()=>{sheet("addModal",true);setTimeout(()=>$("name").focus(),250);};
+$("fab").onclick=()=>{place=filter;document.querySelectorAll("#places button").forEach(x=>x.classList.toggle("on",x.dataset.p===place));sheet("addModal",true);setTimeout(()=>$("name").focus(),250);};
 $("aClose").onclick=()=>sheet("addModal",false);
 $("addModal").onclick=e=>{if(e.target.id==="addModal")sheet("addModal",false);};
 $("bell").onclick=()=>sheet("sModal",true);
