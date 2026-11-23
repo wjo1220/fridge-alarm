@@ -202,8 +202,10 @@
   @keyframes up{from{transform:translateY(100%)}to{transform:none}}
   .sheet.wide h3{margin:0 0 16px}
   .lbl{display:block;font-size:13px;color:var(--sub);margin:0 0 6px}
-  .fab{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:5;font-family:"Jua";font-size:18px;color:#fff;border:0;border-radius:99px;padding:15px 30px;cursor:pointer;
-       background:linear-gradient(135deg,#3cc5a2,#2fb6c9);box-shadow:0 8px 20px rgba(47,182,170,.4)}
+  .fab{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:5;font-family:"Jua";font-size:20px;color:#fff;border:3px solid #fff;border-radius:99px;padding:15px 34px;cursor:pointer;
+       background:linear-gradient(135deg,#ffb347,#ff6b6b);box-shadow:0 10px 24px rgba(255,107,107,.5);text-shadow:0 1px 2px rgba(180,60,40,.35)}
+  .fab.pulse{animation:pulse 1.8s infinite}
+  @keyframes pulse{0%,100%{box-shadow:0 10px 24px rgba(255,107,107,.5),0 0 0 0 rgba(255,107,107,.55)}60%{box-shadow:0 10px 24px rgba(255,107,107,.5),0 0 0 16px rgba(255,107,107,0)}}
   .fab:active{transform:translateX(-50%) scale(.96)}
   .srow{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 0;border-top:1px solid var(--line);font-size:15px}
   .srow select{width:auto;padding:8px 12px}
@@ -366,6 +368,7 @@ function saveLocal(){try{localStorage.setItem("fridge-items",JSON.stringify(item
 function render(){
   $("days").value=String(warnDays);
   if(typeof renderFridge==="function")renderFridge();
+  const fb=document.getElementById("fab");if(fb)fb.classList.toggle("pulse",!items.length);
   const list=items.filter(i=>filter==="all"||i.place===filter).sort((a,b)=>a.date.localeCompare(b.date));
   $("list").innerHTML=list.length?list.map(i=>{
     const d=daysLeft(i.date);
@@ -390,7 +393,6 @@ function render(){
   const few=l=>l.slice(0,2).map(i=>esc(i.name)).join(", ")+(l.length>2?` 외 ${l.length-2}개`:"");
   if(soon.length){a.className="alert warn";a.innerHTML=`⏰ <b>${few(soon)}</b> 빨리 드세요`;}
   else if(expired.length){a.className="alert warn";a.innerHTML=`⚠️ <b>${few(expired)}</b> 유통기한 지났어요`;}
-  else if(!items.length){a.className="alert ok";a.innerHTML="👇 아래 <b>＋ 음식 넣기</b>로 시작해 보세요";}
   else a.className="alert";
 }
 
