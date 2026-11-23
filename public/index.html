@@ -66,7 +66,22 @@
   .ptabs i{font-style:normal;font-size:12px;min-width:20px;padding:1px 6px;border-radius:99px;background:#e3ebf2;color:var(--sub)}
   .ptabs button.on i{background:var(--sky-soft);color:#2b7fd4}
   .ptabs i.warn{background:var(--orange)!important;color:#fff!important}
-  .phead{display:flex;justify-content:flex-end;margin:-2px 0 8px;min-height:4px}
+  .phead{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:-2px 0 8px;min-height:4px}
+  .selbtn{font-family:"Jua";font-size:13.5px;border:1.5px solid var(--line);background:#fff;color:var(--sub);border-radius:99px;padding:6px 12px;cursor:pointer}
+  .qty{font-family:"Jua";font-size:13px;color:#2b7fd4;background:var(--sky-soft);border-radius:99px;padding:1px 7px;margin-left:5px;vertical-align:2px}
+  .qrow{display:flex;align-items:center;justify-content:space-between;margin:2px 0 14px}
+  .qrow .lbl{margin:0}
+  .stepper{display:flex;align-items:center;gap:4px;background:#f0f5f9;border-radius:14px;padding:4px}
+  .stepper button{width:38px;height:38px;border:0;border-radius:11px;background:#fff;font-size:20px;font-family:"Jua";color:var(--ink);cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+  .stepper b{min-width:34px;text-align:center;font-family:"Jua";font-weight:400;font-size:19px}
+  .pick{width:26px;height:26px;flex:none;border-radius:50%;border:2px solid #c5d3de;background:#fff;display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px}
+  .item.picked{border-color:#ff8a8a;background:#fff5f5}
+  .item.picked .pick{background:#ff6b6b;border-color:#ff6b6b}.item.picked .pick::after{content:"✓"}
+  .selbar{position:fixed;left:0;right:0;bottom:0;z-index:6;display:none;gap:8px;padding:12px 16px calc(12px + env(safe-area-inset-bottom));background:#fff;box-shadow:0 -6px 20px rgba(30,60,90,.12)}
+  .selbar.show{display:flex}
+  .selbar button{flex:1;font-family:"Jua";font-size:17px;padding:14px;border:0;border-radius:16px;cursor:pointer}
+  #selCancel{flex:.5;background:#eef3f7;color:var(--ink)}
+  #selDel{background:#ff6b6b;color:#fff}#selDel:disabled{opacity:.45}
   .tempbtn{font-family:"Jua";font-size:14px;border:0;border-radius:99px;padding:6px 12px;background:#24313d;color:#8dffcf;cursor:pointer}
   .tempbtn.fz{color:#7fe3ff}.tempbtn.hot{color:#ffb199}
   .tempbtn span{color:#9fb6c8;font-size:12px;margin-left:4px}
@@ -180,6 +195,7 @@
   </div>
 </div>
 <button class="fab" id="fab">＋ 음식 넣기</button>
+<div class="selbar" id="selbar"><button id="selCancel">취소</button><button id="selDel" disabled>지우기</button></div>
 <div class="modal bottom" id="addModal"><div class="sheet wide">
   <button class="x" id="aClose">✕</button>
   <h3>음식 넣기</h3>
@@ -201,6 +217,9 @@
         <button type="button" data-d="14">2주</button>
         <button type="button" data-d="30">1달</button>
         <button type="button" data-d="90">3달</button>
+      </div>
+      <div class="qrow"><span class="lbl">수량</span>
+        <div class="stepper" id="qStep"><button type="button" data-q="-1">−</button><b id="qty">1</b><button type="button" data-q="1">+</button></div>
       </div>
       <button class="primary" type="submit">냉장고에 넣기</button>
     </form>
@@ -231,6 +250,9 @@
   <div class="edit">
     <label>이름</label><input id="mNameIn" autocomplete="off">
     <label>유통기한</label><input id="mDate" type="date">
+    <div class="qrow" style="margin:10px 0 2px"><label style="margin:0">수량</label>
+      <div class="stepper" id="mStep"><button type="button" data-q="-1">−</button><b id="mQty">1</b><button type="button" data-q="1">+</button></div>
+    </div>
     <label>보관</label>
     <div class="places" id="mPlaces">
       <button type="button" data-p="냉장">🧊 냉장</button><button type="button" data-p="냉동">❄️ 냉동</button><button type="button" data-p="실온">🏠 실온</button>
@@ -277,7 +299,8 @@ function iconFor(name){
   return best||"🍽️";
 }
 
-let items=[],filter="냉장",warnDays=3,place="냉장";
+let items=[],filter="냉장",warnDays=3,place="냉장",addQty=1,mQty=1,selMode=false,picked=new Set();
+const qtyOf=i=>Math.max(1,+i.qty||1);
 const $=id=>document.getElementById(id);
 const pad=n=>String(n).padStart(2,"0");
 const ymd=d=>d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());
@@ -295,7 +318,11 @@ function render(){
   $("days").value=String(warnDays);
   for(const pl of ["냉장","냉동","실온"]){const l=items.filter(i=>i.place===pl),c=$("c"+pl);c.textContent=l.length;c.classList.toggle("warn",l.some(i=>daysLeft(i.date)<=warnDays));}
   const tk=filter==="냉동"?"fz":filter==="냉장"?"fr":"";
-  $("phead").innerHTML=tk?`<button class="tempbtn ${tk}${(tk==="fz"?temps.fz>-15:temps.fr>5)?" hot":""}" data-temp="${tk}">🌡️ ${temps[tk]}°<span>온도 설정</span></button>`:"";
+  const cnt=items.filter(i=>i.place===filter).length;
+  const left=selMode?`<button class="selbtn" id="selAll">${picked.size===cnt?"선택 해제":"전체 선택"}</button>`:cnt>=2?`<button class="selbtn" id="selOn">☑ 여러 개 지우기</button>`:"<span></span>";
+  $("phead").innerHTML=left+(tk&&!selMode?`<button class="tempbtn ${tk}${(tk==="fz"?temps.fz>-15:temps.fr>5)?" hot":""}" data-temp="${tk}">🌡️ ${temps[tk]}°<span>온도 설정</span></button>`:"");
+  $("selbar").classList.toggle("show",selMode);$("fab").style.display=selMode?"none":"";
+  $("selDel").disabled=!picked.size;$("selDel").textContent=picked.size?`선택한 ${picked.size}개 지우기`:"지울 음식을 골라 주세요";
   const fb=document.getElementById("fab");if(fb)fb.classList.toggle("pulse",!items.length);
   const list=items.filter(i=>i.place===filter).sort((a,b)=>a.date.localeCompare(b.date));
   let tipShown=false;try{tipShown=localStorage.getItem("fridge-tip")==="1";}catch(e){}
@@ -308,11 +335,14 @@ function render(){
     if(i.added){const total=Math.max(1,Math.round((new Date(i.date)-new Date(i.added))/86400000));pct=Math.max(0,Math.min(100,d/total*100));}
     if(d<0)pct=100;
     const pIco=i.place==="냉동"?"❄️":i.place==="실온"?"🏠":"🧊";
+    const q=qtyOf(i);
+    if(selMode)return `<div class="item ${cls}${picked.has(i.id)?" picked":""}" data-pick="${i.id}"><div class="pick"></div><div class="ico">${i.icon||iconFor(i.name)}</div>
+      <div class="info"><div class="name">${esc(i.name)}${q>1?`<span class="qty">×${q}</span>`:""}</div><div class="meta">${i.date.replace(/-/g,".")}까지</div></div><div class="right"><div class="badge">${txt}</div></div></div>`;
     return `<div class="item ${cls}" data-open="${i.id}"><div class="ico">${i.icon||iconFor(i.name)}</div>
-      <div class="info"><div class="name">${esc(i.name)}</div>
+      <div class="info"><div class="name">${esc(i.name)}${q>1?`<span class="qty">×${q}</span>`:""}</div>
         <div class="meta">${i.date.replace(/-/g,".")}까지</div>
         <div class="bar"><i style="width:${pct}%"></i></div></div>
-      <div class="right"><div class="badge">${txt}</div><button class="del" data-id="${i.id}"><span class="ck"></span>다 먹음</button>${!tipShown&&i===list[0]?`<div class="tip">다 먹었으면 체크해요 👆</div>`:""}</div></div>`;
+      <div class="right"><div class="badge">${txt}</div><button class="del" data-id="${i.id}"><span class="ck"></span>${q>1?"1개 먹음":"다 먹음"}</button>${!tipShown&&i===list[0]?`<div class="tip">다 먹었으면 체크해요 👆</div>`:""}</div></div>`;
   }).join(""):`<div class="empty"><div>🫙</div>${filter==="실온"?"실온 보관 음식이 없어요":filter+"실이 비어 있어요"}</div>`;
 
   const expired=items.filter(i=>daysLeft(i.date)<0);
@@ -326,8 +356,14 @@ function render(){
 }
 
 async function addItem(it){
-  items.push(it);setTab(it.place);toast(it.icon+" "+it.name+" 넣었어요");
+  items.push(it);setTab(it.place);toast(it.icon+" "+it.name+(qtyOf(it)>1?" "+qtyOf(it)+"개":"")+" 넣었어요");
   saveLocal();
+}
+function eatOne(id){
+  const it=items.find(i=>i.id===id);if(!it)return;
+  const q=qtyOf(it);if(q<=1){delItem(id);return;}
+  it.qty=q-1;render();saveLocal();
+  toast(`😋 ${it.name} 1개 먹었어요 (${q-1}개 남음)`,()=>{it.qty=q;render();saveLocal();});
 }
 async function delItem(id){
   const it=items.find(i=>i.id===id);
@@ -348,12 +384,12 @@ $("form").addEventListener("submit",e=>{
   e.preventDefault();
   const name=$("name").value.trim(),date=$("date").value;
   if(!name||!date)return;
-  addItem({id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),name,date,place,icon:iconFor(name),added:ymd(new Date())});
+  addItem({id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),name,date,place,qty:addQty,icon:iconFor(name),added:ymd(new Date())});addQty=1;$("qty").textContent=1;
   defaultDate();$("name").value="";$("preview").textContent="🍽️";lastIco="🍽️";$("addModal").classList.remove("show");
 });
 document.querySelectorAll("#places button").forEach(b=>b.onclick=()=>{place=b.dataset.p;document.querySelectorAll("#places button").forEach(x=>x.classList.toggle("on",x===b));});
 document.querySelectorAll(".quick button").forEach(b=>b.onclick=()=>{const d=new Date();d.setDate(d.getDate()+ +b.dataset.d);$("date").value=ymd(d);});
-function setTab(f){filter=f;document.querySelectorAll("#ptabs button").forEach(x=>x.classList.toggle("on",x.dataset.f===f));render();}
+function setTab(f){filter=f;selMode=false;picked=new Set();document.querySelectorAll("#ptabs button").forEach(x=>x.classList.toggle("on",x.dataset.f===f));render();}
 document.querySelectorAll("#ptabs button").forEach(b=>b.onclick=()=>setTab(b.dataset.f));
 
 function ddayText(d){return d<0?(-d)+"일 지남":d===0?"오늘까지":"D-"+d;}
@@ -363,17 +399,20 @@ function openFood(id){
   const d=daysLeft(i.date);
   $("mIco").textContent=i.icon||iconFor(i.name);$("mName").textContent=i.name;
   $("mInfo").textContent=i.place+" · "+i.date.replace(/-/g,".")+"까지 ("+ddayText(d)+")";
-  $("mNameIn").value=i.name;$("mDate").value=i.date;mPlace=i.place;markPlace();
+  $("mNameIn").value=i.name;$("mDate").value=i.date;mPlace=i.place;markPlace();mQty=qtyOf(i);$("mQty").textContent=mQty;$("mEat").textContent=mQty>1?"전부 다 먹음 ✓":"다 먹음 ✓";
   $("modal").classList.add("show");
 }
 let mPlace="냉장";
+const clampQ=n=>Math.max(1,Math.min(99,n));
+$("qStep").onclick=e=>{const b=e.target.closest("[data-q]");if(!b)return;addQty=clampQ(addQty+ +b.dataset.q);$("qty").textContent=addQty;};
+$("mStep").onclick=e=>{const b=e.target.closest("[data-q]");if(!b)return;mQty=clampQ(mQty+ +b.dataset.q);$("mQty").textContent=mQty;};
 function markPlace(){document.querySelectorAll("#mPlaces button").forEach(b=>b.classList.toggle("on",b.dataset.p===mPlace));}
 document.querySelectorAll("#mPlaces button").forEach(b=>b.onclick=()=>{mPlace=b.dataset.p;markPlace();});
 $("mSave").onclick=()=>{
   const i=items.find(x=>x.id===openId);if(!i)return;
   const n=$("mNameIn").value.trim(),d=$("mDate").value;
   if(!n||!d){toast("이름과 유통기한을 채워 주세요");return;}
-  i.name=n;i.date=d;i.place=mPlace;i.icon=iconFor(n);
+  i.name=n;i.date=d;i.place=mPlace;i.qty=mQty;i.icon=iconFor(n);
   saveLocal();closeModal();render();toast("✏️ "+n+" 수정했어요");
 };
 // 온도 설정
@@ -397,8 +436,20 @@ function closeModal(){$("modal").classList.remove("show");openId=null;}
 $("mClose").onclick=closeModal;
 $("modal").onclick=e=>{if(e.target.id==="modal")closeModal();};
 $("mEat").onclick=()=>{const id=openId;closeModal();if(id)delItem(id);};
-$("list").addEventListener("click",e=>{const tp=e.target.closest(".tip");if(tp||e.target.closest(".del")){try{localStorage.setItem("fridge-tip","1");}catch(x){}document.querySelectorAll(".tip").forEach(t=>t.remove());if(tp)return;}const d=e.target.closest(".del");if(d){if(d.classList.contains("done"))return;d.classList.add("done");setTimeout(()=>d.closest(".item").classList.add("out"),250);setTimeout(()=>delItem(d.dataset.id),550);return;}const it=e.target.closest("[data-open]");if(it)openFood(it.dataset.open);});
-$("phead").addEventListener("click",e=>{const t=e.target.closest("[data-temp]");if(t)openTemp(t.dataset.temp);});
+$("list").addEventListener("click",e=>{const tp=e.target.closest(".tip");if(tp||e.target.closest(".del")){try{localStorage.setItem("fridge-tip","1");}catch(x){}document.querySelectorAll(".tip").forEach(t=>t.remove());if(tp)return;}const d=e.target.closest(".del");if(d){if(d.classList.contains("done"))return;d.classList.add("done");const it=items.find(i=>i.id===d.dataset.id);
+    if(it&&qtyOf(it)>1){setTimeout(()=>eatOne(d.dataset.id),300);return;}
+    setTimeout(()=>d.closest(".item").classList.add("out"),250);setTimeout(()=>delItem(d.dataset.id),550);return;}
+  const pk=e.target.closest("[data-pick]");if(pk){const id=pk.dataset.pick;picked.has(id)?picked.delete(id):picked.add(id);render();return;}const it=e.target.closest("[data-open]");if(it)openFood(it.dataset.open);});
+function setSel(on){selMode=on;picked=new Set();render();}
+$("selCancel").onclick=()=>setSel(false);
+$("selDel").onclick=()=>{
+  const gone=items.filter(i=>picked.has(i.id));if(!gone.length)return;
+  items=items.filter(i=>!picked.has(i.id));selMode=false;picked=new Set();render();saveLocal();
+  toast(`🗑️ ${gone.length}개 지웠어요`,()=>{items.push(...gone);render();saveLocal();});
+};
+$("phead").addEventListener("click",e=>{
+  if(e.target.id==="selOn"){setSel(true);return;}
+  if(e.target.id==="selAll"){const l=items.filter(i=>i.place===filter);picked=picked.size===l.length?new Set():new Set(l.map(i=>i.id));render();return;}const t=e.target.closest("[data-temp]");if(t)openTemp(t.dataset.temp);});
 $("days").onchange=()=>{warnDays=+$("days").value;render();saveDays();};
 
 loadLocal();render();
