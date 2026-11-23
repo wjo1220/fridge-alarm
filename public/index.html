@@ -86,7 +86,11 @@
   .badge{font-family:"Jua";font-size:15px;padding:4px 10px;border-radius:99px;background:var(--mint-soft);color:#1f9e7f;white-space:nowrap}
   .item.warn .badge{background:var(--orange-soft);color:#e07f17}
   .item.bad .badge{background:var(--red-soft);color:#e04848}
-  .del{font-family:inherit;font-size:12px;border:0;background:transparent;color:var(--sub);cursor:pointer;padding:2px}
+  .del{display:flex;align-items:center;gap:5px;font-family:"Jua";font-size:13.5px;color:#1f9e7f;background:#fff;border:1.5px solid #a8e3d2;border-radius:12px;padding:5px 10px 5px 7px;cursor:pointer;box-shadow:0 2px 0 #cdeee4;transition:transform .1s}
+  .del:active{transform:translateY(2px);box-shadow:none}
+  .ck{width:17px;height:17px;border-radius:50%;border:2px solid #3cc5a2;display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff;transition:background .2s}
+  .del.done .ck{background:#3cc5a2}.del.done .ck::after{content:"✓"}
+  .item.out{opacity:0;transform:translateX(40px);transition:.3s}
   .empty{color:var(--sub);text-align:center;padding:28px 0 18px;font-size:14px}
   .empty div{font-size:46px;margin-bottom:6px}
 
@@ -304,7 +308,7 @@ function render(){
       <div class="info"><div class="name">${esc(i.name)}</div>
         <div class="meta">${i.date.replace(/-/g,".")}까지</div>
         <div class="bar"><i style="width:${pct}%"></i></div></div>
-      <div class="right"><div class="badge">${txt}</div><button class="del" data-id="${i.id}">다 먹음 ✓</button></div></div>`;
+      <div class="right"><div class="badge">${txt}</div><button class="del" data-id="${i.id}"><span class="ck"></span>다 먹음</button></div></div>`;
   }).join(""):`<div class="empty"><div>🫙</div>${filter==="실온"?"실온 보관 음식이 없어요":filter+"실이 비어 있어요"}</div>`;
 
   const expired=items.filter(i=>daysLeft(i.date)<0);
@@ -389,7 +393,7 @@ function closeModal(){$("modal").classList.remove("show");openId=null;}
 $("mClose").onclick=closeModal;
 $("modal").onclick=e=>{if(e.target.id==="modal")closeModal();};
 $("mEat").onclick=()=>{const id=openId;closeModal();if(id)delItem(id);};
-$("list").addEventListener("click",e=>{const id=e.target.dataset&&e.target.dataset.id;if(id){delItem(id);return;}const it=e.target.closest("[data-open]");if(it)openFood(it.dataset.open);});
+$("list").addEventListener("click",e=>{const d=e.target.closest(".del");if(d){if(d.classList.contains("done"))return;d.classList.add("done");setTimeout(()=>d.closest(".item").classList.add("out"),250);setTimeout(()=>delItem(d.dataset.id),550);return;}const it=e.target.closest("[data-open]");if(it)openFood(it.dataset.open);});
 $("phead").addEventListener("click",e=>{const t=e.target.closest("[data-temp]");if(t)openTemp(t.dataset.temp);});
 $("days").onchange=()=>{warnDays=+$("days").value;render();saveDays();};
 
