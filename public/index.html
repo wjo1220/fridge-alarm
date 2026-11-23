@@ -58,6 +58,12 @@
   .quick button{font-family:inherit;padding:7px 12px;font-size:13px;border:0;border-radius:99px;background:#f0f5f9;color:var(--ink);cursor:pointer}
   .quick button:active{background:var(--sky-soft)}
   .quick button.on{background:var(--sky);color:#fff}
+  .freq{display:flex;gap:6px;overflow-x:auto;padding:2px 0 6px;margin-bottom:10px;scrollbar-width:none}
+  .freq::-webkit-scrollbar{display:none}
+  .freq button{flex:none;display:inline-flex;align-items:center;gap:4px;font-family:inherit;font-size:14px;padding:7px 12px 7px 9px;border:1.5px solid #ffd9a8;border-radius:99px;background:#fff8ee;color:var(--ink);cursor:pointer}
+  .freq button:active{background:#ffe9cc}
+  .freq .fi{font-size:17px;line-height:1;display:inline-flex}
+  .freq .fi .sv{width:18px;height:18px}
   input:disabled{opacity:.4}
   .item.nodate .badge{background:#eef3f7;color:var(--sub)}
   .lblrow{display:flex;align-items:center;justify-content:space-between;margin:8px 0 4px}
@@ -208,6 +214,7 @@
   <button class="x" id="aClose">✕</button>
   <h3>음식 넣기</h3>
   <form id="form">
+      <div id="freqWrap" style="display:none"><div class="lbl">⭐ 자주 넣는 음식</div><div class="freq" id="freq"></div></div>
       <div class="namebox">
         <div class="preview" id="preview">🍽️</div>
         <input id="name" placeholder="무엇을 넣을까요? (예: 우유)" required autocomplete="off">
@@ -371,7 +378,34 @@ function render(){
   else a.className="alert";
 }
 
+// 자주 넣는 음식 기록 (이 휴대폰에만 저장)
+function loadHist(){try{return JSON.parse(localStorage.getItem("fridge-hist")||"{}")||{};}catch(e){return {};}}
+function saveHist(hh){try{localStorage.setItem("fridge-hist",JSON.stringify(hh));}catch(e){}}
+function histOf(hh,it,count){
+  const o=hh[it.name]||{n:0,t:0};o.n+=count;o.t=Math.max(o.t,Date.now());o.p=it.place;
+  o.d=hasDate(it)&&it.added?Math.max(0,Math.round((new Date(it.date)-new Date(it.added))/864e5)):null;
+  hh[it.name]=o;
+}
+function remember(it){
+  const hh=loadHist();histOf(hh,it,1);
+  const ks=Object.keys(hh);if(ks.length>60)ks.sort((a,b)=>(hh[a].n-hh[b].n)||(hh[a].t-hh[b].t)).slice(0,ks.length-60).forEach(k=>delete hh[k]);
+  saveHist(hh);
+}
+function seedHist(){if(Object.keys(loadHist()).length||!items.length)return;const hh={};items.forEach(i=>histOf(hh,i,1));saveHist(hh);}
+function renderFreq(){
+  const hh=loadHist(),top=Object.entries(hh).sort((a,b)=>(b[1].n-a[1].n)||(b[1].t-a[1].t)).slice(0,12);
+  $("freqWrap").style.display=top.length?"":"none";
+  $("freq").innerHTML=top.map(([k])=>`<button type="button" data-name="${esc(k)}"><span class="fi">${icoHTML(iconFor(k))}</span>${esc(k)}</button>`).join("");
+}
+$("freq").onclick=e=>{
+  const b=e.target.closest("[data-name]");if(!b)return;
+  const k=b.dataset.name,o=loadHist()[k];if(!o)return;
+  $("name").value=k;$("name").dispatchEvent(new Event("input"));
+  place=o.p||place;document.querySelectorAll("#places button").forEach(x=>x.classList.toggle("on",x.dataset.p===place));
+  if(o.d===null||o.d===undefined){setNoDate(true);}else{setNoDate(false);const d=new Date();d.setDate(d.getDate()+o.d);$("date").value=ymd(d);}
+};
 async function addItem(it){
+  remember(it);
   items.push(it);setTab(it.place);toast(icoText(iconFor(it.name))+" "+it.name+(qtyOf(it)>1?" "+qtyOf(it)+"개":"")+" 넣었어요");
   saveLocal();
 }
@@ -473,14 +507,14 @@ $("phead").addEventListener("click",e=>{
   if(e.target.id==="selAll"){const l=items.filter(i=>i.place===filter);picked=picked.size===l.length?new Set():new Set(l.map(i=>i.id));render();return;}const t=e.target.closest("[data-temp]");if(t)openTemp(t.dataset.temp);});
 $("days").onchange=()=>{warnDays=+$("days").value;render();saveDays();};
 
-loadLocal();render();
+loadLocal();seedHist();render();
 function defaultDate(){const d=new Date();d.setDate(d.getDate()+7);$("date").value=ymd(d);}
 defaultDate();
 let today=ymd(new Date());
 setInterval(()=>{const t=ymd(new Date());if(t!==today){today=t;render();}},60000);
 $("status").textContent="📱 음식 목록은 이 휴대폰에 저장돼요";
 function sheet(id,show){$(id).classList.toggle("show",show);}
-$("fab").onclick=()=>{place=filter;document.querySelectorAll("#places button").forEach(x=>x.classList.toggle("on",x.dataset.p===place));sheet("addModal",true);setTimeout(()=>$("name").focus(),250);};
+$("fab").onclick=()=>{renderFreq();place=filter;document.querySelectorAll("#places button").forEach(x=>x.classList.toggle("on",x.dataset.p===place));sheet("addModal",true);setTimeout(()=>$("name").focus(),250);};
 $("aClose").onclick=()=>sheet("addModal",false);
 $("addModal").onclick=e=>{if(e.target.id==="addModal")sheet("addModal",false);};
 $("bell").onclick=()=>sheet("sModal",true);
