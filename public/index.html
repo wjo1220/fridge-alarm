@@ -22,13 +22,14 @@
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   body{margin:0;font-family:"Gowun Dodum",-apple-system,"Apple SD Gothic Neo",sans-serif;background:var(--bg);color:var(--ink)}
-  .wrap{max-width:540px;margin:0 auto;padding:0 0 60px}
+  .wrap{max-width:540px;margin:0 auto;padding:0 0 110px}
 
   /* 헤더 */
-  .hero{background:linear-gradient(140deg,#7fd3f7 0%,#5aa9f5 55%,#7b8cf5 100%);color:#fff;padding:26px 20px 64px;border-radius:0 0 32px 32px;position:relative;overflow:hidden}
+  .hero{background:linear-gradient(140deg,#7fd3f7 0%,#5aa9f5 55%,#7b8cf5 100%);color:#fff;padding:22px 20px 60px;display:flex;align-items:center;justify-content:space-between;border-radius:0 0 32px 32px;position:relative;overflow:hidden}
   .hero::after{content:"❄";position:absolute;right:-10px;top:-24px;font-size:150px;opacity:.13}
   .hero h1{font-family:"Jua",sans-serif;font-weight:400;font-size:27px;margin:0 0 4px;letter-spacing:-.5px}
-  .hero p{margin:0;font-size:14px;opacity:.92}
+  .bell{position:relative;z-index:1;width:42px;height:42px;border-radius:50%;border:0;background:rgba(255,255,255,.25);font-size:20px;cursor:pointer}
+  .bell.off::after{content:"";position:absolute;top:7px;right:8px;width:9px;height:9px;border-radius:50%;background:#ff6b6b;box-shadow:0 0 0 2px #fff}
   .stats{display:flex;gap:10px;margin:-44px 16px 16px;position:relative;z-index:1}
   .stat{flex:1;background:#fff;border-radius:18px;padding:12px 8px;text-align:center;box-shadow:0 6px 18px rgba(60,110,160,.12)}
   .stat b{display:block;font-family:"Jua";font-weight:400;font-size:26px;line-height:1.1}
@@ -84,8 +85,9 @@
   .set{display:flex;align-items:center;gap:8px;font-size:14px;flex-wrap:wrap}
   .set select{width:auto;padding:8px 12px}
   .foot{font-size:12px;color:var(--sub);text-align:center;margin-top:6px}
-  .toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(80px);background:#22323f;color:#fff;padding:11px 18px;border-radius:99px;font-size:14px;transition:transform .3s;z-index:9}
-  .toast.show{transform:translateX(-50%) translateY(0)}
+  .toast{position:fixed;left:50%;bottom:96px;transform:translateX(-50%) translateY(80px);background:#22323f;color:#fff;padding:11px 18px;border-radius:99px;font-size:14px;transition:transform .3s;z-index:9}
+  .toast{pointer-events:none;transform:translateX(-50%) translateY(200px)!important}
+  .toast.show{pointer-events:auto;transform:translateX(-50%) translateY(0)!important}
 
   /* 양문형 냉장고 */
   .view{display:flex;gap:6px;margin:-4px 0 14px}
@@ -166,7 +168,6 @@
   .panel{cursor:pointer;width:86px!important;padding:9px 0 7px!important;transition:transform .12s}
   .panel:active{transform:translateX(-50%) scale(.94)}
   .panel::before{content:"";position:absolute;left:-22px;right:-22px;top:-20px;bottom:-34px;border-radius:16px}
-  .panel span::after{content:" · 설정";color:#7fa2bd}
   .panel::after{content:"⚙️";position:absolute;right:-7px;top:-7px;font-size:11px;background:#fff;border-radius:50%;width:18px;height:18px;line-height:18px;box-shadow:0 1px 3px rgba(0,0,0,.2)}
   .panel.hot{box-shadow:inset 0 0 0 2px #ff8a65,0 0 10px rgba(255,120,80,.6)}
   .temp{display:flex;align-items:center;justify-content:center;gap:16px;margin:6px 0 4px}
@@ -195,6 +196,19 @@
   .sheet .btns{display:flex;gap:8px}
   .sheet .btns button{flex:1;font-family:"Jua";font-size:16px;padding:12px;border:0;border-radius:14px;cursor:pointer}
   .sheet .eat{background:var(--mint);color:#fff}.sheet .close{background:#eef3f7;color:var(--ink)}
+  /* 아래에서 올라오는 창 */
+  .modal.bottom{align-items:flex-end;padding:0}
+  .sheet.wide{max-width:540px;border-radius:26px 26px 0 0;text-align:left;padding:22px 20px calc(22px + env(safe-area-inset-bottom));animation:up .28s ease}
+  @keyframes up{from{transform:translateY(100%)}to{transform:none}}
+  .sheet.wide h3{margin:0 0 16px}
+  .lbl{display:block;font-size:13px;color:var(--sub);margin:0 0 6px}
+  .fab{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:5;font-family:"Jua";font-size:18px;color:#fff;border:0;border-radius:99px;padding:15px 30px;cursor:pointer;
+       background:linear-gradient(135deg,#3cc5a2,#2fb6c9);box-shadow:0 8px 20px rgba(47,182,170,.4)}
+  .fab:active{transform:translateX(-50%) scale(.96)}
+  .srow{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 0;border-top:1px solid var(--line);font-size:15px}
+  .srow select{width:auto;padding:8px 12px}
+  .srow.col{flex-direction:column;align-items:stretch}
+  .srow.col .pnote{margin:0}
   /* 알림 */
   .push h2{margin-bottom:6px}
   .pnote{font-size:13.5px;color:var(--sub);margin:0 0 12px;line-height:1.5}
@@ -207,7 +221,7 @@
 <div class="wrap">
   <div class="hero">
     <h1>🧊 우리집 냉장고</h1>
-    <p>넣은 음식과 유통기한을 적어두면 임박한 걸 알려줘요</p>
+    <button class="bell" id="bell" aria-label="알림 설정">🔔</button>
   </div>
 
   <div class="stats">
@@ -218,34 +232,9 @@
 
   <div id="alert" class="alert"></div>
 
-  <div class="card">
-    <h2>➕ 음식 넣기</h2>
-    <form id="form">
-      <div class="namebox">
-        <div class="preview" id="preview">🍽️</div>
-        <input id="name" placeholder="음식 이름 (예: 우유, 계란, 사과)" required autocomplete="off">
-      </div>
-      <div class="places" id="places">
-        <button type="button" data-p="냉장" class="on">🧊 냉장</button>
-        <button type="button" data-p="냉동">❄️ 냉동</button>
-        <button type="button" data-p="실온">🏠 실온</button>
-      </div>
-      <input id="date" type="date" required>
-      <div class="quick">
-        <button type="button" data-d="3">+3일</button>
-        <button type="button" data-d="7">+1주</button>
-        <button type="button" data-d="14">+2주</button>
-        <button type="button" data-d="30">+1달</button>
-        <button type="button" data-d="90">+3달</button>
-      </div>
-      <button class="primary" type="submit">냉장고에 넣기</button>
-    </form>
-  </div>
-
-  <div class="card">
-    <h2>📋 냉장고 안</h2>
+  <div class="card main">
     <div class="view">
-      <button data-v="fridge" class="on">🧊 냉장고 모양</button>
+      <button data-v="fridge" class="on">🧊 냉장고</button>
       <button data-v="list">📋 목록</button>
     </div>
     <div id="fridgeView"></div>
@@ -260,25 +249,53 @@
     </div>
   </div>
 
-  <div class="card set">
-    <span>🔔 알림 기준</span>
+</div>
+<button class="fab" id="fab">＋ 음식 넣기</button>
+<div class="modal bottom" id="addModal"><div class="sheet wide">
+  <button class="x" id="aClose">✕</button>
+  <h3>음식 넣기</h3>
+  <form id="form">
+      <div class="namebox">
+        <div class="preview" id="preview">🍽️</div>
+        <input id="name" placeholder="무엇을 넣을까요? (예: 우유)" required autocomplete="off">
+      </div>
+      <div class="places" id="places">
+        <button type="button" data-p="냉장" class="on">🧊 냉장</button>
+        <button type="button" data-p="냉동">❄️ 냉동</button>
+        <button type="button" data-p="실온">🏠 실온</button>
+      </div>
+      <label class="lbl">유통기한</label>
+      <input id="date" type="date" required>
+      <div class="quick">
+        <button type="button" data-d="3">3일</button>
+        <button type="button" data-d="7">1주</button>
+        <button type="button" data-d="14">2주</button>
+        <button type="button" data-d="30">1달</button>
+        <button type="button" data-d="90">3달</button>
+      </div>
+      <button class="primary" type="submit">냉장고에 넣기</button>
+    </form>
+</div></div>
+<div class="modal bottom" id="sModal"><div class="sheet wide">
+  <button class="x" id="sClose">✕</button>
+  <h3>🔔 알림</h3>
+  <div class="srow"><span>며칠 전부터 알려줄까요?</span>
     <select id="days">
       <option value="1">1일 전</option><option value="2">2일 전</option>
       <option value="3" selected>3일 전</option><option value="5">5일 전</option><option value="7">7일 전</option>
     </select>
-    <span>부터 알려주기</span>
   </div>
-  <div class="card push">
-    <h2>📲 앱을 닫아도 알림 받기</h2>
-    <p class="pnote" id="pushNote">매일 아침 9시에 유통기한이 가까운 음식을 알려드려요.</p>
+  <div class="srow col">
+    <span>앱을 닫아도 알림 받기</span>
+    <p class="pnote" id="pushNote"></p>
     <button class="primary" id="pushOn">🔔 알림 켜기</button>
     <div class="pbtns" id="pushOnBtns" style="display:none">
-      <button class="ghost" id="pushTest">테스트 알림 보내기</button>
+      <button class="ghost" id="pushTest">테스트 알림</button>
       <button class="ghost" id="pushOff">알림 끄기</button>
     </div>
   </div>
-  <div class="foot" id="status">불러오는 중…</div>
-</div>
+  <div class="foot" id="status"></div>
+</div></div>
 <div class="toast" id="toast"></div>
 <div class="modal" id="modal"><div class="sheet">
   <button class="x" id="mClose">✕</button>
@@ -370,12 +387,10 @@ function render(){
   const soon=items.filter(i=>{const d=daysLeft(i.date);return d>=0&&d<=warnDays;});
   $("sAll").textContent=items.length;$("sSoon").textContent=soon.length;$("sBad").textContent=expired.length;
   const a=$("alert");
-  if(expired.length||soon.length){
-    a.className="alert warn";let h="";
-    if(soon.length)h+=`⏰ <b>곧 유통기한!</b> ${soon.map(i=>(i.icon||iconFor(i.name))+" "+esc(i.name)).join(", ")}<br>`;
-    if(expired.length)h+=`⚠️ <b>이미 지났어요</b> ${expired.map(i=>(i.icon||iconFor(i.name))+" "+esc(i.name)).join(", ")}`;
-    a.innerHTML=h;
-  }else if(items.length){a.className="alert ok";a.innerHTML="👍 임박한 음식이 없어요. 냉장고가 싱싱해요!";}
+  const few=l=>l.slice(0,2).map(i=>esc(i.name)).join(", ")+(l.length>2?` 외 ${l.length-2}개`:"");
+  if(soon.length){a.className="alert warn";a.innerHTML=`⏰ <b>${few(soon)}</b> 빨리 드세요`;}
+  else if(expired.length){a.className="alert warn";a.innerHTML=`⚠️ <b>${few(expired)}</b> 유통기한 지났어요`;}
+  else if(!items.length){a.className="alert ok";a.innerHTML="👇 아래 <b>＋ 음식 넣기</b>로 시작해 보세요";}
   else a.className="alert";
 }
 
@@ -403,7 +418,7 @@ $("form").addEventListener("submit",e=>{
   const name=$("name").value.trim(),date=$("date").value;
   if(!name||!date)return;
   addItem({id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),name,date,place,icon:iconFor(name),added:ymd(new Date())});
-  defaultDate();$("name").value="";$("preview").textContent="🍽️";lastIco="🍽️";$("name").focus();
+  defaultDate();$("name").value="";$("preview").textContent="🍽️";lastIco="🍽️";$("addModal").classList.remove("show");
 });
 document.querySelectorAll("#places button").forEach(b=>b.onclick=()=>{place=b.dataset.p;document.querySelectorAll("#places button").forEach(x=>x.classList.toggle("on",x===b));});
 document.querySelectorAll(".quick button").forEach(b=>b.onclick=()=>{const d=new Date();d.setDate(d.getDate()+ +b.dataset.d);$("date").value=ymd(d);});
@@ -426,19 +441,19 @@ function buildFridge(){
       <div class="inside"><div class="lamp"></div><div class="ctitle">❄️ 냉동실</div><div id="inL"></div></div>
       <div class="door" data-door="left">
         <div class="face front"><div class="panel" data-temp="fz" id="pL"><b id="tL"></b><span>냉동</span></div><div class="cnt" id="cntL"></div>
-          <div class="memo" id="memoL"></div><div class="handle2"></div><div class="tap">👆 눌러서 열기</div></div>
+          <div class="memo" id="memoL"></div><div class="handle2"></div><div class="tap">👆 열기</div></div>
       </div>
     </div>
     <div class="cab right" id="cabR">
       <div class="inside"><div class="lamp"></div><div class="ctitle">🧊 냉장실</div><div id="inR"></div></div>
       <div class="door" data-door="right">
         <div class="face front"><div class="panel" data-temp="fr" id="pR"><b id="tR"></b><span>냉장</span></div><div class="cnt" id="cntR"></div>
-          <div class="memo" id="memoR"></div><div class="handle2"></div><div class="tap">👆 눌러서 열기</div></div>
+          <div class="memo" id="memoR"></div><div class="handle2"></div><div class="tap">👆 열기</div></div>
       </div>
     </div>
   </div><div class="feet"><i></i><i></i></div></div>
   <div class="basket"><div class="ctitle">🏠 실온 바구니</div><div class="row" id="inRT"></div></div>
-  <div class="hint">문을 누르면 열리고, 열린 문을 한 번 더 누르면 닫혀요.<br>냉장실은 음료·소스칸, 채소·과일칸이 따로 있어요.</div>`;
+`;
   $("fridgeView").addEventListener("click",e=>{
     const tp=e.target.closest("[data-temp]");if(tp){e.stopPropagation();openTemp(tp.dataset.temp);return;}
     const f=e.target.closest("[data-open]");if(f){e.stopPropagation();openFood(f.dataset.open);return;}
@@ -468,7 +483,7 @@ function renderFridge(){
   $("inRT").innerHTML=rt.length?rt.map(foodHTML).join(""):`<span style="font-size:12px;color:#b59a74">비어 있어요</span>`;
   $("tL").textContent=temps.fz+"°";$("tR").textContent=temps.fr+"°";
   $("pL").classList.toggle("hot",temps.fz>-15);$("pR").classList.toggle("hot",temps.fr>5);
-  $("cntL").textContent=fz.length+"개 보관 중";$("cntR").textContent=fr.length+"개 보관 중";
+  $("cntL").textContent=fz.length+"개";$("cntR").textContent=fr.length+"개";
   let [c,h]=memoHTML(fz);$("memoL").className="memo "+c;$("memoL").innerHTML=h;
   [c,h]=memoHTML(fr);$("memoR").className="memo "+c;$("memoR").innerHTML=h;
 }
@@ -524,7 +539,14 @@ function defaultDate(){const d=new Date();d.setDate(d.getDate()+7);$("date").val
 defaultDate();
 let today=ymd(new Date());
 setInterval(()=>{const t=ymd(new Date());if(t!==today){today=t;render();}},60000);
-$("status").textContent="📱 이 기기에 저장돼요 (로그인 필요 없음)";
+$("status").textContent="📱 음식 목록은 이 휴대폰에 저장돼요";
+function sheet(id,show){$(id).classList.toggle("show",show);}
+$("fab").onclick=()=>{sheet("addModal",true);setTimeout(()=>$("name").focus(),250);};
+$("aClose").onclick=()=>sheet("addModal",false);
+$("addModal").onclick=e=>{if(e.target.id==="addModal")sheet("addModal",false);};
+$("bell").onclick=()=>sheet("sModal",true);
+$("sClose").onclick=()=>sheet("sModal",false);
+$("sModal").onclick=e=>{if(e.target.id==="sModal")sheet("sModal",false);};
 if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));}
 
 // ===== 앱을 닫아도 오는 알림 =====
@@ -535,12 +557,12 @@ function pushBody(sub){return JSON.stringify({sub:{endpoint:sub.endpoint},items:
 async function getSub(){const reg=await navigator.serviceWorker.ready;return reg.pushManager.getSubscription();}
 async function api(path,body){const r=await fetch("api/"+path,{method:"POST",headers:{"content-type":"application/json"},body});const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error||("서버 오류 "+r.status));return j;}
 function renderPush(){
-  const on=pushIsOn();
+  const on=pushIsOn();$("bell").classList.toggle("off",!on);
   $("pushOn").style.display=on?"none":"";$("pushOnBtns").style.display=on?"flex":"none";
-  let note="매일 아침 9시에 유통기한이 가까운 음식을 알려드려요.";
+  let note="매일 아침 9시에 곧 끝나는 음식을 알려드려요.";
   if(!PUSH_OK)note="이 브라우저에서는 알림을 받을 수 없어요. (아이폰은 공유 버튼 → '홈 화면에 추가' 후 거기서 열어 주세요)";
   else if(Notification.permission==="denied")note="알림이 차단돼 있어요. 휴대폰 설정에서 이 앱(또는 크롬)의 알림을 허용해 주세요.";
-  else if(on)note="✅ 알림이 켜져 있어요. 매일 아침 9시에 임박한 음식이 있으면 알려드려요.";
+  else if(on)note="✅ 켜져 있어요. 매일 아침 9시에 알려드려요.";
   $("pushNote").textContent=note;
 }
 async function enablePush(){
