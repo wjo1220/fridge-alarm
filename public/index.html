@@ -219,7 +219,6 @@
     <p class="pnote" id="pushNote"></p>
     <button class="primary" id="pushOn">🔔 알림 켜기</button>
     <div class="pbtns" id="pushOnBtns" style="display:none">
-      <button class="ghost" id="pushTest">테스트 알림</button>
       <button class="ghost" id="pushOff">알림 끄기</button>
     </div>
   </div>
@@ -452,21 +451,13 @@ async function disablePush(){
   try{localStorage.removeItem("fridge-push");}catch(e){}
   toast("알림을 껐어요");renderPush();
 }
-async function testPush(){
-  try{
-    const sub=await getSub();if(!sub)throw new Error("알림을 다시 켜 주세요");
-    await api("subscribe",pushBody(sub));
-    const r=await api("test",JSON.stringify({endpoint:sub.endpoint}));
-    toast(r.status>=200&&r.status<300?"📨 보냈어요! 몇 초 안에 알림이 와요":"보내기 실패 ("+r.status+")");
-  }catch(e){toast("테스트 실패: "+e.message);}
-}
 let syncT;
 function syncPush(){
   if(!PUSH_OK||!pushIsOn())return;
   clearTimeout(syncT);
   syncT=setTimeout(async()=>{try{const sub=await getSub();if(sub)await api("subscribe",pushBody(sub));}catch(e){}},800);
 }
-$("pushOn").onclick=enablePush;$("pushOff").onclick=disablePush;$("pushTest").onclick=testPush;
+$("pushOn").onclick=enablePush;$("pushOff").onclick=disablePush;
 renderPush();syncPush();
 </script>
 </body>
