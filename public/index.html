@@ -48,6 +48,7 @@
   .namebox{display:flex;align-items:center;gap:12px;margin-bottom:12px}
   .preview{width:58px;height:58px;flex:none;border-radius:18px;background:var(--sky-soft);display:flex;align-items:center;justify-content:center;font-size:32px;transition:transform .25s}
   .preview.pop{transform:scale(1.18) rotate(-6deg)}
+  .sv{width:1.45em;height:1.45em;display:block;margin:0 auto}
   input,select{width:100%;font-family:inherit;font-size:16px;padding:13px 14px;border:1.5px solid var(--line);border-radius:14px;background:#f8fbfd;color:var(--ink);outline:none;transition:border .2s}
   input:focus,select:focus{border-color:var(--sky);background:#fff}
   .places{display:flex;gap:8px;margin-bottom:12px}
@@ -282,7 +283,7 @@ const ICONS = [
   [["체리"],"🍒"],[["키위"],"🥝"],[["망고"],"🥭"],[["파인애플"],"🍍"],[["블루베리"],"🫐"],[["멜론","참외"],"🍈"],
   [["토마토"],"🍅"],[["당근"],"🥕"],[["고구마"],"🍠"],[["감자"],"🥔"],[["양파"],"🧅"],[["마늘"],"🧄"],
   [["브로콜리"],"🥦"],[["오이"],"🥒"],[["가지"],"🍆"],[["옥수수"],"🌽"],[["고추","청양"],"🌶️"],[["파프리카","피망"],"🫑"],
-  [["버섯","표고","팽이","새송이"],"🍄"],[["아보카도"],"🥑"],[["콩","두부","낫또"],"🫘"],
+  [["버섯","표고","팽이","새송이"],"🍄"],[["아보카도"],"🥑"],[["콩","낫또"],"🫘"],[["두부"],"TOFU"],
   [["상추","양상추","배추","양배추","시금치","깻잎","채소","야채","샐러드","김치","부추","대파","쪽파"],"🥬"],
   [["빵","식빵","베이글","바게트"],"🍞"],[["케이크","케익"],"🍰"],[["떡"],"🍡"],[["밥","햇반"],"🍚"],
   [["만두"],"🥟"],[["피자"],"🍕"],[["햄버거","버거"],"🍔"],[["라면","국수","면","우동","파스타"],"🍜"],
@@ -291,6 +292,9 @@ const ICONS = [
   [["주스","쥬스"],"🧃"],[["콜라","사이다","탄산","음료"],"🥤"],[["맥주"],"🍺"],[["와인"],"🍷"],[["소주","막걸리","술"],"🍶"],
   [["커피","라떼"],"☕"],[["물","생수"],"💧"]
 ];
+const TOFU_SVG=`<svg class="sv" viewBox="0 0 64 64" aria-label="두부"><ellipse cx="32" cy="55" rx="24" ry="4" fill="rgba(0,0,0,.08)"/><path d="M5 25 Q5 22 8 21 L28 13 Q31 12 34 13 L57 20 Q60 21 59 24 L38 33 Q34 35 30 33 Z" fill="#ffffff" stroke="#d8d2c0" stroke-width="1.5" stroke-linejoin="round"/><path d="M5 25 L30 33 Q34 35 34 38 L34 53 Q34 55 31 54 L8 46 Q5 45 5 42 Z" fill="#f7f4ec" stroke="#d8d2c0" stroke-width="1.5" stroke-linejoin="round"/><path d="M34 38 Q34 35 38 33 L59 24 L59 40 Q59 43 56 44 L37 53 Q34 55 34 53 Z" fill="#ebe5d4" stroke="#d8d2c0" stroke-width="1.5" stroke-linejoin="round"/><ellipse cx="25" cy="21" rx="6" ry="2" fill="#f1eee5" opacity=".9"/></svg>`;
+function icoHTML(ico){return ico==="TOFU"?TOFU_SVG:ico;}
+function icoText(ico){return ico==="TOFU"?"🤍":ico;}
 function iconFor(name){
   const n=(name||"").replace(/\s/g,"");
   if(!n) return "🍽️";
@@ -336,9 +340,9 @@ function render(){
     if(d<0)pct=100;
     const pIco=i.place==="냉동"?"❄️":i.place==="실온"?"🏠":"🧊";
     const q=qtyOf(i);
-    if(selMode)return `<div class="item ${cls}${picked.has(i.id)?" picked":""}" data-pick="${i.id}"><div class="pick"></div><div class="ico">${i.icon||iconFor(i.name)}</div>
+    if(selMode)return `<div class="item ${cls}${picked.has(i.id)?" picked":""}" data-pick="${i.id}"><div class="pick"></div><div class="ico">${icoHTML(iconFor(i.name))}</div>
       <div class="info"><div class="name">${esc(i.name)}${q>1?`<span class="qty">×${q}</span>`:""}</div><div class="meta">${i.date.replace(/-/g,".")}까지</div></div><div class="right"><div class="badge">${txt}</div></div></div>`;
-    return `<div class="item ${cls}" data-open="${i.id}"><div class="ico">${i.icon||iconFor(i.name)}</div>
+    return `<div class="item ${cls}" data-open="${i.id}"><div class="ico">${icoHTML(iconFor(i.name))}</div>
       <div class="info"><div class="name">${esc(i.name)}${q>1?`<span class="qty">×${q}</span>`:""}</div>
         <div class="meta">${i.date.replace(/-/g,".")}까지</div>
         <div class="bar"><i style="width:${pct}%"></i></div></div>
@@ -356,7 +360,7 @@ function render(){
 }
 
 async function addItem(it){
-  items.push(it);setTab(it.place);toast(it.icon+" "+it.name+(qtyOf(it)>1?" "+qtyOf(it)+"개":"")+" 넣었어요");
+  items.push(it);setTab(it.place);toast(icoText(iconFor(it.name))+" "+it.name+(qtyOf(it)>1?" "+qtyOf(it)+"개":"")+" 넣었어요");
   saveLocal();
 }
 function eatOne(id){
@@ -378,7 +382,7 @@ async function saveDays(){
 let lastIco="🍽️";
 $("name").addEventListener("input",()=>{
   const ico=iconFor($("name").value),p=$("preview");
-  if(ico!==lastIco){p.textContent=ico;p.classList.add("pop");setTimeout(()=>p.classList.remove("pop"),250);lastIco=ico;}
+  if(ico!==lastIco){p.innerHTML=icoHTML(ico);p.classList.add("pop");setTimeout(()=>p.classList.remove("pop"),250);lastIco=ico;}
 });
 $("form").addEventListener("submit",e=>{
   e.preventDefault();
@@ -397,7 +401,7 @@ let openId=null;
 function openFood(id){
   const i=items.find(x=>x.id===id);if(!i)return;openId=id;
   const d=daysLeft(i.date);
-  $("mIco").textContent=i.icon||iconFor(i.name);$("mName").textContent=i.name;
+  $("mIco").innerHTML=icoHTML(iconFor(i.name));$("mName").textContent=i.name;
   $("mInfo").textContent=i.place+" · "+i.date.replace(/-/g,".")+"까지 ("+ddayText(d)+")";
   $("mNameIn").value=i.name;$("mDate").value=i.date;mPlace=i.place;markPlace();mQty=qtyOf(i);$("mQty").textContent=mQty;$("mEat").textContent=mQty>1?"전부 다 먹음 ✓":"다 먹음 ✓";
   $("modal").classList.add("show");
