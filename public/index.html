@@ -57,6 +57,13 @@
   .quick{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0 14px}
   .quick button{font-family:inherit;padding:7px 12px;font-size:13px;border:0;border-radius:99px;background:#f0f5f9;color:var(--ink);cursor:pointer}
   .quick button:active{background:var(--sky-soft)}
+  .quick button.on{background:var(--sky);color:#fff}
+  input:disabled{opacity:.4}
+  .item.nodate .badge{background:#eef3f7;color:var(--sub)}
+  .lblrow{display:flex;align-items:center;justify-content:space-between;margin:8px 0 4px}
+  .lblrow label{margin:0!important}
+  .nd{font-family:inherit;font-size:12.5px;border:1.5px solid var(--line);background:#fff;color:var(--sub);border-radius:99px;padding:4px 10px;cursor:pointer}
+  .nd.on{background:var(--sky);border-color:var(--sky);color:#fff}
   .primary{width:100%;font-family:"Jua";font-size:18px;border:0;border-radius:16px;padding:14px;cursor:pointer;color:#fff;background:linear-gradient(135deg,#3cc5a2,#2fb6c9);box-shadow:0 6px 14px rgba(47,182,170,.3)}
   .primary:active{transform:translateY(1px)}
 
@@ -211,13 +218,14 @@
         <button type="button" data-p="실온">🏠 실온</button>
       </div>
       <label class="lbl">유통기한</label>
-      <input id="date" type="date" required>
+      <input id="date" type="date">
       <div class="quick">
         <button type="button" data-d="3">3일</button>
         <button type="button" data-d="7">1주</button>
         <button type="button" data-d="14">2주</button>
         <button type="button" data-d="30">1달</button>
         <button type="button" data-d="90">3달</button>
+        <button type="button" data-d="none" id="noDate">기한 없음</button>
       </div>
       <div class="qrow"><span class="lbl">수량</span>
         <div class="stepper" id="qStep"><button type="button" data-q="-1">−</button><b id="qty">1</b><button type="button" data-q="1">+</button></div>
@@ -250,7 +258,7 @@
   <div class="big" id="mIco"></div><h3 id="mName"></h3><p id="mInfo"></p>
   <div class="edit">
     <label>이름</label><input id="mNameIn" autocomplete="off">
-    <label>유통기한</label><input id="mDate" type="date">
+    <div class="lblrow"><label>유통기한</label><button type="button" class="nd" id="mNoDate">기한 없음</button></div><input id="mDate" type="date">
     <div class="qrow" style="margin:10px 0 2px"><label style="margin:0">수량</label>
       <div class="stepper" id="mStep"><button type="button" data-q="-1">−</button><b id="mQty">1</b><button type="button" data-q="1">+</button></div>
     </div>
@@ -308,6 +316,9 @@ const qtyOf=i=>Math.max(1,+i.qty||1);
 const $=id=>document.getElementById(id);
 const pad=n=>String(n).padStart(2,"0");
 const ymd=d=>d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());
+const hasDate=i=>/^\d{4}-\d{2}-\d{2}$/.test((i&&i.date)||"");
+function sinceText(i){if(!i.added)return"기한 없음";const n=-daysLeft(i.added);return n<=0?"오늘 넣음":"넣은 지 "+n+"일";}
+function byDate(a,b){const x=hasDate(a),y=hasDate(b);if(x&&y)return a.date.localeCompare(b.date);if(x)return -1;if(y)return 1;return (a.added||"").localeCompare(b.added||"");}
 function daysLeft(s){const t=new Date();t.setHours(0,0,0,0);return Math.round((new Date(s+"T00:00:00")-t)/86400000);}
 function esc(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
 function toast(m,undo){const t=$("toast");t.textContent=m;
@@ -320,7 +331,7 @@ function saveLocal(){try{localStorage.setItem("fridge-items",JSON.stringify(item
 
 function render(){
   $("days").value=String(warnDays);
-  for(const pl of ["냉장","냉동","실온"]){const l=items.filter(i=>i.place===pl),c=$("c"+pl);c.textContent=l.length;c.classList.toggle("warn",l.some(i=>daysLeft(i.date)<=warnDays));}
+  for(const pl of ["냉장","냉동","실온"]){const l=items.filter(i=>i.place===pl),c=$("c"+pl);c.textContent=l.length;c.classList.toggle("warn",l.some(i=>hasDate(i)&&daysLeft(i.date)<=warnDays));}
   const tk=filter==="냉동"?"fz":filter==="냉장"?"fr":"";
   const cnt=items.filter(i=>i.place===filter).length;
   const left=selMode?`<button class="selbtn" id="selAll">${picked.size===cnt?"선택 해제":"전체 선택"}</button>`:cnt>=2?`<button class="selbtn" id="selOn">☑ 여러 개 지우기</button>`:"<span></span>";
@@ -328,29 +339,30 @@ function render(){
   $("selbar").classList.toggle("show",selMode);$("fab").style.display=selMode?"none":"";
   $("selDel").disabled=!picked.size;$("selDel").textContent=picked.size?`선택한 ${picked.size}개 지우기`:"지울 음식을 골라 주세요";
   const fb=document.getElementById("fab");if(fb)fb.classList.toggle("pulse",!items.length);
-  const list=items.filter(i=>i.place===filter).sort((a,b)=>a.date.localeCompare(b.date));
+  const list=items.filter(i=>i.place===filter).sort(byDate);
   let tipShown=false;try{tipShown=localStorage.getItem("fridge-tip")==="1";}catch(e){}
   $("list").innerHTML=list.length?list.map(i=>{
-    const d=daysLeft(i.date);
-    const cls=d<0?"bad":d<=warnDays?"warn":"";
-    const txt=d<0?(-d)+"일 지남":d===0?"오늘까지":"D-"+d;
+    const dated=hasDate(i),d=dated?daysLeft(i.date):NaN;
+    const cls=!dated?"nodate":d<0?"bad":d<=warnDays?"warn":"";
+    const txt=!dated?sinceText(i):d<0?(-d)+"일 지남":d===0?"오늘까지":"D-"+d;
+    const meta=dated?i.date.replace(/-/g,".")+"까지":"유통기한 없음";
     // 남은 기간 막대: 넣은 날~유통기한 기준
     let pct=100;
-    if(i.added){const total=Math.max(1,Math.round((new Date(i.date)-new Date(i.added))/86400000));pct=Math.max(0,Math.min(100,d/total*100));}
+    if(dated&&i.added){const total=Math.max(1,Math.round((new Date(i.date)-new Date(i.added))/86400000));pct=Math.max(0,Math.min(100,d/total*100));}
     if(d<0)pct=100;
     const pIco=i.place==="냉동"?"❄️":i.place==="실온"?"🏠":"🧊";
     const q=qtyOf(i);
     if(selMode)return `<div class="item ${cls}${picked.has(i.id)?" picked":""}" data-pick="${i.id}"><div class="pick"></div><div class="ico">${icoHTML(iconFor(i.name))}</div>
-      <div class="info"><div class="name">${esc(i.name)}${q>1?`<span class="qty">×${q}</span>`:""}</div><div class="meta">${i.date.replace(/-/g,".")}까지</div></div><div class="right"><div class="badge">${txt}</div></div></div>`;
+      <div class="info"><div class="name">${esc(i.name)}${q>1?`<span class="qty">×${q}</span>`:""}</div><div class="meta">${meta}</div></div><div class="right"><div class="badge">${txt}</div></div></div>`;
     return `<div class="item ${cls}" data-open="${i.id}"><div class="ico">${icoHTML(iconFor(i.name))}</div>
       <div class="info"><div class="name">${esc(i.name)}${q>1?`<span class="qty">×${q}</span>`:""}</div>
-        <div class="meta">${i.date.replace(/-/g,".")}까지</div>
-        <div class="bar"><i style="width:${pct}%"></i></div></div>
+        <div class="meta">${meta}</div>
+        ${dated?`<div class="bar"><i style="width:${pct}%"></i></div>`:""}</div>
       <div class="right"><div class="badge">${txt}</div><button class="del" data-id="${i.id}"><span class="ck"></span>${q>1?"1개 먹음":"다 먹음"}</button>${!tipShown&&i===list[0]?`<div class="tip">다 먹었으면 체크해요 👆</div>`:""}</div></div>`;
   }).join(""):`<div class="empty"><div>🫙</div>${filter==="실온"?"실온 보관 음식이 없어요":filter+"실이 비어 있어요"}</div>`;
 
-  const expired=items.filter(i=>daysLeft(i.date)<0);
-  const soon=items.filter(i=>{const d=daysLeft(i.date);return d>=0&&d<=warnDays;});
+  const expired=items.filter(i=>hasDate(i)&&daysLeft(i.date)<0);
+  const soon=items.filter(i=>{if(!hasDate(i))return false;const d=daysLeft(i.date);return d>=0&&d<=warnDays;});
   $("sAll").textContent=items.length;$("sSoon").textContent=soon.length;$("sBad").textContent=expired.length;
   const a=$("alert");
   const few=l=>l.slice(0,2).map(i=>esc(i.name)).join(", ")+(l.length>2?` 외 ${l.length-2}개`:"");
@@ -386,13 +398,16 @@ $("name").addEventListener("input",()=>{
 });
 $("form").addEventListener("submit",e=>{
   e.preventDefault();
-  const name=$("name").value.trim(),date=$("date").value;
-  if(!name||!date)return;
+  const name=$("name").value.trim(),date=noDate?"":$("date").value;
+  if(!name)return;
+  if(!noDate&&!date){toast("유통기한을 골라 주세요");return;}
   addItem({id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),name,date,place,qty:addQty,icon:iconFor(name),added:ymd(new Date())});addQty=1;$("qty").textContent=1;
-  defaultDate();$("name").value="";$("preview").textContent="🍽️";lastIco="🍽️";$("addModal").classList.remove("show");
+  setNoDate(false);defaultDate();$("name").value="";$("preview").textContent="🍽️";lastIco="🍽️";$("addModal").classList.remove("show");
 });
 document.querySelectorAll("#places button").forEach(b=>b.onclick=()=>{place=b.dataset.p;document.querySelectorAll("#places button").forEach(x=>x.classList.toggle("on",x===b));});
-document.querySelectorAll(".quick button").forEach(b=>b.onclick=()=>{const d=new Date();d.setDate(d.getDate()+ +b.dataset.d);$("date").value=ymd(d);});
+let noDate=false;
+function setNoDate(on){noDate=on;$("noDate").classList.toggle("on",on);$("date").disabled=on;}
+document.querySelectorAll(".quick button").forEach(b=>b.onclick=()=>{if(b.dataset.d==="none"){setNoDate(!noDate);return;}setNoDate(false);const d=new Date();d.setDate(d.getDate()+ +b.dataset.d);$("date").value=ymd(d);});
 function setTab(f){filter=f;selMode=false;picked=new Set();document.querySelectorAll("#ptabs button").forEach(x=>x.classList.toggle("on",x.dataset.f===f));render();}
 document.querySelectorAll("#ptabs button").forEach(b=>b.onclick=()=>setTab(b.dataset.f));
 
@@ -400,13 +415,15 @@ function ddayText(d){return d<0?(-d)+"일 지남":d===0?"오늘까지":"D-"+d;}
 let openId=null;
 function openFood(id){
   const i=items.find(x=>x.id===id);if(!i)return;openId=id;
-  const d=daysLeft(i.date);
+  const d=hasDate(i)?daysLeft(i.date):NaN;
   $("mIco").innerHTML=icoHTML(iconFor(i.name));$("mName").textContent=i.name;
-  $("mInfo").textContent=i.place+" · "+i.date.replace(/-/g,".")+"까지 ("+ddayText(d)+")";
-  $("mNameIn").value=i.name;$("mDate").value=i.date;mPlace=i.place;markPlace();mQty=qtyOf(i);$("mQty").textContent=mQty;$("mEat").textContent=mQty>1?"전부 다 먹음 ✓":"다 먹음 ✓";
+  $("mInfo").textContent=hasDate(i)?i.place+" · "+i.date.replace(/-/g,".")+"까지 ("+ddayText(d)+")":i.place+" · 유통기한 없음 · "+sinceText(i);
+  $("mNameIn").value=i.name;$("mDate").value=hasDate(i)?i.date:ymd(new Date(Date.now()+7*864e5));setMNoDate(!hasDate(i));mPlace=i.place;markPlace();mQty=qtyOf(i);$("mQty").textContent=mQty;$("mEat").textContent=mQty>1?"전부 다 먹음 ✓":"다 먹음 ✓";
   $("modal").classList.add("show");
 }
-let mPlace="냉장";
+let mPlace="냉장",mNoDate=false;
+function setMNoDate(on){mNoDate=on;$("mNoDate").classList.toggle("on",on);$("mDate").disabled=on;}
+$("mNoDate").onclick=()=>setMNoDate(!mNoDate);
 const clampQ=n=>Math.max(1,Math.min(99,n));
 $("qStep").onclick=e=>{const b=e.target.closest("[data-q]");if(!b)return;addQty=clampQ(addQty+ +b.dataset.q);$("qty").textContent=addQty;};
 $("mStep").onclick=e=>{const b=e.target.closest("[data-q]");if(!b)return;mQty=clampQ(mQty+ +b.dataset.q);$("mQty").textContent=mQty;};
@@ -414,8 +431,8 @@ function markPlace(){document.querySelectorAll("#mPlaces button").forEach(b=>b.c
 document.querySelectorAll("#mPlaces button").forEach(b=>b.onclick=()=>{mPlace=b.dataset.p;markPlace();});
 $("mSave").onclick=()=>{
   const i=items.find(x=>x.id===openId);if(!i)return;
-  const n=$("mNameIn").value.trim(),d=$("mDate").value;
-  if(!n||!d){toast("이름과 유통기한을 채워 주세요");return;}
+  const n=$("mNameIn").value.trim(),d=mNoDate?"":$("mDate").value;
+  if(!n||(!mNoDate&&!d)){toast("이름과 유통기한을 채워 주세요");return;}
   i.name=n;i.date=d;i.place=mPlace;i.qty=mQty;i.icon=iconFor(n);
   saveLocal();closeModal();render();toast("✏️ "+n+" 수정했어요");
 };
@@ -475,7 +492,7 @@ if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.se
 const PUSH_OK="serviceWorker" in navigator&&"PushManager" in window&&"Notification" in window;
 const pushIsOn=()=>{try{return localStorage.getItem("fridge-push")==="1";}catch(e){return false;}};
 function b64uToBytes(s){s=s.replace(/-/g,"+").replace(/_/g,"/");const r=atob(s+"===".slice((s.length+3)%4));return Uint8Array.from(r,c=>c.charCodeAt(0));}
-function pushBody(sub){return JSON.stringify({sub:{endpoint:sub.endpoint},items:items.map(i=>({name:i.name,date:i.date})),warnDays,tz:new Date().getTimezoneOffset()});}
+function pushBody(sub){return JSON.stringify({sub:{endpoint:sub.endpoint},items:items.filter(hasDate).map(i=>({name:i.name,date:i.date})),warnDays,tz:new Date().getTimezoneOffset()});}
 async function getSub(){const reg=await navigator.serviceWorker.ready;return reg.pushManager.getSubscription();}
 async function api(path,body){const r=await fetch("api/"+path,{method:"POST",headers:{"content-type":"application/json"},body});const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error||("서버 오류 "+r.status));return j;}
 function renderPush(){
