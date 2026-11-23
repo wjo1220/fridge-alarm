@@ -514,7 +514,7 @@ let today=ymd(new Date());
 setInterval(()=>{const t=ymd(new Date());if(t!==today){today=t;render();}},60000);
 $("status").textContent="📱 음식 목록은 이 휴대폰에 저장돼요";
 function sheet(id,show){$(id).classList.toggle("show",show);}
-$("fab").onclick=()=>{renderFreq();place=filter;document.querySelectorAll("#places button").forEach(x=>x.classList.toggle("on",x.dataset.p===place));sheet("addModal",true);setTimeout(()=>$("name").focus(),250);};
+$("fab").onclick=()=>{renderFreq();place=filter;document.querySelectorAll("#places button").forEach(x=>x.classList.toggle("on",x.dataset.p===place));sheet("addModal",true);};
 $("aClose").onclick=()=>sheet("addModal",false);
 $("addModal").onclick=e=>{if(e.target.id==="addModal")sheet("addModal",false);};
 $("bell").onclick=()=>sheet("sModal",true);
