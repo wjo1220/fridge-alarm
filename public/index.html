@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, interactive-widget=resizes-content">
 <title>우리집 냉장고 유통기한 알리미</title>
 <meta name="description" content="냉장고에 넣은 음식과 유통기한을 기록하면 임박한 음식을 알려주는 무료 앱">
 <meta name="theme-color" content="#5aa9f5">
@@ -161,8 +161,8 @@
   .sheet .btns button{flex:1;font-family:"Jua";font-size:16px;padding:12px;border:0;border-radius:14px;cursor:pointer}
   .sheet .eat{background:var(--mint);color:#fff}.sheet .close{background:#eef3f7;color:var(--ink)}
   /* 아래에서 올라오는 창 */
-  .modal.bottom{align-items:flex-end;padding:0}
-  .sheet.wide{max-width:540px;border-radius:26px 26px 0 0;text-align:left;padding:22px 20px calc(22px + env(safe-area-inset-bottom));animation:up .28s ease}
+  .modal.bottom{align-items:flex-end;padding:0;bottom:auto;height:var(--vvh,100dvh)}
+  .sheet.wide{max-width:540px;border-radius:26px 26px 0 0;text-align:left;padding:22px 20px calc(22px + env(safe-area-inset-bottom));animation:up .28s ease;max-height:calc(var(--vvh,100dvh) - 12px);overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
   @keyframes up{from{transform:translateY(100%)}to{transform:none}}
   .sheet.wide h3{margin:0 0 16px}
   .lbl{display:block;font-size:13px;color:var(--sub);margin:0 0 6px}
@@ -566,6 +566,13 @@ function syncPush(){
 }
 $("pushOn").onclick=enablePush;$("pushOff").onclick=disablePush;
 renderPush();syncPush();
+</script>
+<script>
+(function(){var vv=window.visualViewport;if(!vv)return;
+function fit(){document.documentElement.style.setProperty('--vvh',vv.height+'px');}
+vv.addEventListener('resize',fit);fit();
+document.addEventListener('focusin',function(e){var t=e.target;if(!t.matches||!t.matches('.sheet input,.sheet select,.sheet textarea'))return;
+setTimeout(function(){t.scrollIntoView({block:'center',behavior:'smooth'});},300);});})();
 </script>
 </body>
 </html>
