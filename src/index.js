@@ -3,6 +3,16 @@ import { ensureVapid, sendPush, checkEndpoint, cleanRecord, keyFor, buildMessage
 
 const SUBJECT = "https://fridge-alarm.eke413eke413.workers.dev";
 
+// Play Console > 앱 서명 키의 SHA-256 지문
+const ASSET_LINKS = [{
+  relation: ["delegate_permission/common.handle_all_urls"],
+  target: {
+    namespace: "android_app",
+    package_name: "com.weedisk.fridgealarm",
+    sha256_cert_fingerprints: ["6D:6E:0D:C8:95:34:B0:72:57:2C:13:25:66:E4:E6:30:C2:F0:42:32:FB:2C:E7:76:E9:CE:6C:D6:89:63:D4:3F"],
+  },
+}];
+
 // 알림 받는 사람 목록을 저장하는 곳
 export class Store extends DurableObject {
   constructor(ctx, env) {
@@ -58,6 +68,10 @@ const json = (data, status = 200) =>
 export default {
   async fetch(req, env) {
     const url = new URL(req.url);
+    // 안드로이드 앱(TWA)이 이 사이트의 공식 앱임을 증명하는 파일 → 주소창 없이 앱처럼 보임
+    if (url.pathname === "/.well-known/assetlinks.json") {
+      return new Response(JSON.stringify(ASSET_LINKS), { headers: { "content-type": "application/json", "cache-control": "max-age=3600" } });
+    }
     if (!url.pathname.startsWith("/api/")) return env.ASSETS.fetch(req);
     const store = env.STORE.get(env.STORE.idFromName("main"));
     try {
