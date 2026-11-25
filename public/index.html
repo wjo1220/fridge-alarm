@@ -72,6 +72,10 @@
   .nd.on{background:var(--sky);border-color:var(--sky);color:#fff}
   .kinds{margin-bottom:8px}.kinds button{padding:9px 0;font-size:14.5px}
   .kmark{font-size:11px;padding:1px 6px;border-radius:99px;background:#eef3f7;color:var(--sub);margin-left:4px}
+  .dwrap{position:relative}.dwrap input{display:block;margin:0}
+  .dph{position:absolute;left:14px;right:14px;top:50%;transform:translateY(-50%);color:#8a9aa8;font-size:15.5px;pointer-events:none;white-space:nowrap;overflow:hidden;text-align:left;line-height:1.2}
+  .dwrap.noval input{color:transparent}
+  .dwrap:not(.noval) .dph{display:none}
   .primary{width:100%;font-family:"Jua";font-size:18px;border:0;border-radius:16px;padding:14px;cursor:pointer;color:#fff;background:linear-gradient(135deg,#3cc5a2,#2fb6c9);box-shadow:0 6px 14px rgba(47,182,170,.3)}
   .primary:active{transform:translateY(1px)}
 
@@ -232,7 +236,7 @@
         <button type="button" data-k="소비" class="on">소비기한</button>
         <button type="button" data-k="유통">유통기한</button>
       </div>
-      <input id="date" type="date">
+      <div class="dwrap noval" id="dwrap"><input id="date" type="date"><span class="dph" id="dph">📅 여기를 눌러 날짜를 골라요</span></div>
       <p class="err" id="dateErr">날짜를 골라 주세요. 없으면 "기한 없음"을 눌러요.</p>
       <div class="quick">
         <button type="button" data-d="3">3일</button>
@@ -417,7 +421,7 @@ $("freq").onclick=e=>{
   $("name").value=k;$("name").dispatchEvent(new Event("input"));
   place=o.p||place;document.querySelectorAll("#places button").forEach(x=>x.classList.toggle("on",x.dataset.p===place));
   if(o.k){kind=o.k;markKinds("#kinds",kind);}
-  if(o.d===null||o.d===undefined){setNoDate(true);}else{setNoDate(false);const d=new Date();d.setDate(d.getDate()+o.d);$("date").value=ymd(d);}
+  if(o.d===null||o.d===undefined){setNoDate(true);}else{setNoDate(false);const d=new Date();d.setDate(d.getDate()+o.d);$("date").value=ymd(d);updPh();}
 };
 async function addItem(it){
   remember(it);
@@ -457,9 +461,11 @@ document.querySelectorAll("#kinds button").forEach(b=>b.onclick=()=>{kind=b.data
 document.querySelectorAll("#places button").forEach(b=>b.onclick=()=>{place=b.dataset.p;document.querySelectorAll("#places button").forEach(x=>x.classList.toggle("on",x===b));});
 let noDate=false;
 function showDateErr(on){$("dateErr").classList.toggle("show",on);$("date").classList.toggle("bad",on);}
-$("date").addEventListener("input",()=>{if($("date").value)showDateErr(false);});
-function setNoDate(on){noDate=on;if(on)showDateErr(false);$("noDate").classList.toggle("on",on);$("date").disabled=on;}
-document.querySelectorAll(".quick button").forEach(b=>b.onclick=()=>{if(b.dataset.d==="none"){setNoDate(!noDate);return;}setNoDate(false);const d=new Date();d.setDate(d.getDate()+ +b.dataset.d);$("date").value=ymd(d);showDateErr(false);});
+$("date").addEventListener("input",()=>{if($("date").value)showDateErr(false);updPh();});
+$("date").addEventListener("change",updPh);
+function updPh(){const e=noDate||!$("date").value;$("dwrap").classList.toggle("noval",e);$("dph").textContent=noDate?"기한 없이 넣어요":"📅 여기를 눌러 날짜를 골라요";}
+function setNoDate(on){noDate=on;if(on)showDateErr(false);$("noDate").classList.toggle("on",on);$("date").disabled=on;updPh();}
+document.querySelectorAll(".quick button").forEach(b=>b.onclick=()=>{if(b.dataset.d==="none"){setNoDate(!noDate);return;}setNoDate(false);const d=new Date();d.setDate(d.getDate()+ +b.dataset.d);$("date").value=ymd(d);showDateErr(false);updPh();});
 function setTab(f){filter=f;selMode=false;picked=new Set();document.querySelectorAll("#ptabs button").forEach(x=>x.classList.toggle("on",x.dataset.f===f));render();}
 document.querySelectorAll("#ptabs button").forEach(b=>b.onclick=()=>setTab(b.dataset.f));
 
@@ -527,7 +533,7 @@ $("phead").addEventListener("click",e=>{
 $("days").onchange=()=>{warnDays=+$("days").value;render();saveDays();};
 
 loadLocal();seedHist();render();
-function defaultDate(){$("date").value="";}
+function defaultDate(){$("date").value="";updPh();}
 defaultDate();
 let today=ymd(new Date());
 setInterval(()=>{const t=ymd(new Date());if(t!==today){today=t;render();}},60000);
