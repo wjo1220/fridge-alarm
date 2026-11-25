@@ -514,7 +514,7 @@ $("phead").addEventListener("click",e=>{
 $("days").onchange=()=>{warnDays=+$("days").value;render();saveDays();};
 
 loadLocal();seedHist();render();
-function defaultDate(){const d=new Date();d.setDate(d.getDate()+7);$("date").value=ymd(d);}
+function defaultDate(){$("date").value="";}
 defaultDate();
 let today=ymd(new Date());
 setInterval(()=>{const t=ymd(new Date());if(t!==today){today=t;render();}},60000);
