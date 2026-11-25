@@ -164,6 +164,8 @@
   .modal.bottom{align-items:flex-end;padding:0;bottom:auto;height:var(--vvh,100dvh)}
   .sheet.wide{max-width:540px;border-radius:26px 26px 0 0;text-align:left;padding:22px 20px calc(22px + env(safe-area-inset-bottom));animation:up .28s ease;max-height:calc(var(--vvh,100dvh) - 12px);overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
   @keyframes up{from{transform:translateY(100%)}to{transform:none}}
+  .err{display:none;color:#e5484d;font-size:13px;font-weight:700;margin:6px 2px 0}.err.show{display:block}
+  #date.bad{border-color:#e5484d!important;box-shadow:0 0 0 3px rgba(229,72,77,.15)}
   .sheet.wide h3{margin:0 0 16px}
   .lbl{display:block;font-size:13px;color:var(--sub);margin:0 0 6px}
   .fab{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:5;font-family:"Jua";font-size:20px;color:#fff;border:3px solid #fff;border-radius:99px;padding:15px 34px;cursor:pointer;
@@ -226,6 +228,7 @@
       </div>
       <label class="lbl">유통기한</label>
       <input id="date" type="date">
+      <p class="err" id="dateErr">유통기한을 골라 주세요. 없으면 "기한 없음"을 눌러요.</p>
       <div class="quick">
         <button type="button" data-d="3">3일</button>
         <button type="button" data-d="7">1주</button>
@@ -435,14 +438,16 @@ $("form").addEventListener("submit",e=>{
   e.preventDefault();
   const name=$("name").value.trim(),date=noDate?"":$("date").value;
   if(!name)return;
-  if(!noDate&&!date){toast("유통기한을 골라 주세요");return;}
+  if(!noDate&&!date){showDateErr(true);$("date").focus({preventScroll:true});$("date").scrollIntoView({block:"center",behavior:"smooth"});return;}
   addItem({id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),name,date,place,qty:addQty,icon:iconFor(name),added:ymd(new Date())});addQty=1;$("qty").textContent=1;
-  setNoDate(false);defaultDate();$("name").value="";$("preview").textContent="🍽️";lastIco="🍽️";$("addModal").classList.remove("show");
+  setNoDate(false);defaultDate();showDateErr(false);$("name").value="";$("preview").textContent="🍽️";lastIco="🍽️";$("addModal").classList.remove("show");
 });
 document.querySelectorAll("#places button").forEach(b=>b.onclick=()=>{place=b.dataset.p;document.querySelectorAll("#places button").forEach(x=>x.classList.toggle("on",x===b));});
 let noDate=false;
-function setNoDate(on){noDate=on;$("noDate").classList.toggle("on",on);$("date").disabled=on;}
-document.querySelectorAll(".quick button").forEach(b=>b.onclick=()=>{if(b.dataset.d==="none"){setNoDate(!noDate);return;}setNoDate(false);const d=new Date();d.setDate(d.getDate()+ +b.dataset.d);$("date").value=ymd(d);});
+function showDateErr(on){$("dateErr").classList.toggle("show",on);$("date").classList.toggle("bad",on);}
+$("date").addEventListener("input",()=>{if($("date").value)showDateErr(false);});
+function setNoDate(on){noDate=on;if(on)showDateErr(false);$("noDate").classList.toggle("on",on);$("date").disabled=on;}
+document.querySelectorAll(".quick button").forEach(b=>b.onclick=()=>{if(b.dataset.d==="none"){setNoDate(!noDate);return;}setNoDate(false);const d=new Date();d.setDate(d.getDate()+ +b.dataset.d);$("date").value=ymd(d);showDateErr(false);});
 function setTab(f){filter=f;selMode=false;picked=new Set();document.querySelectorAll("#ptabs button").forEach(x=>x.classList.toggle("on",x.dataset.f===f));render();}
 document.querySelectorAll("#ptabs button").forEach(b=>b.onclick=()=>setTab(b.dataset.f));
 
