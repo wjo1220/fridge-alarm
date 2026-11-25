@@ -70,6 +70,8 @@
   .lblrow label{margin:0!important}
   .nd{font-family:inherit;font-size:12.5px;border:1.5px solid var(--line);background:#fff;color:var(--sub);border-radius:99px;padding:4px 10px;cursor:pointer}
   .nd.on{background:var(--sky);border-color:var(--sky);color:#fff}
+  .kinds{margin-bottom:8px}.kinds button{padding:9px 0;font-size:14.5px}
+  .kmark{font-size:11px;padding:1px 6px;border-radius:99px;background:#eef3f7;color:var(--sub);margin-left:4px}
   .primary{width:100%;font-family:"Jua";font-size:18px;border:0;border-radius:16px;padding:14px;cursor:pointer;color:#fff;background:linear-gradient(135deg,#3cc5a2,#2fb6c9);box-shadow:0 6px 14px rgba(47,182,170,.3)}
   .primary:active{transform:translateY(1px)}
 
@@ -226,9 +228,12 @@
         <button type="button" data-p="냉동">❄️ 냉동</button>
         <button type="button" data-p="실온">🏠 실온</button>
       </div>
-      <label class="lbl">유통기한</label>
+      <div class="places kinds" id="kinds">
+        <button type="button" data-k="소비" class="on">소비기한</button>
+        <button type="button" data-k="유통">유통기한</button>
+      </div>
       <input id="date" type="date">
-      <p class="err" id="dateErr">유통기한을 골라 주세요. 없으면 "기한 없음"을 눌러요.</p>
+      <p class="err" id="dateErr">날짜를 골라 주세요. 없으면 "기한 없음"을 눌러요.</p>
       <div class="quick">
         <button type="button" data-d="3">3일</button>
         <button type="button" data-d="7">1주</button>
@@ -269,7 +274,9 @@
   <div class="big" id="mIco"></div><h3 id="mName"></h3><p id="mInfo"></p>
   <div class="edit">
     <label>이름</label><input id="mNameIn" autocomplete="off">
-    <div class="lblrow"><label>유통기한</label><button type="button" class="nd" id="mNoDate">기한 없음</button></div><input id="mDate" type="date">
+    <div class="lblrow"><label>기한</label><button type="button" class="nd" id="mNoDate">기한 없음</button></div>
+    <div class="places kinds" id="mKinds"><button type="button" data-k="소비">소비기한</button><button type="button" data-k="유통">유통기한</button></div>
+    <input id="mDate" type="date">
     <div class="qrow" style="margin:10px 0 2px"><label style="margin:0">수량</label>
       <div class="stepper" id="mStep"><button type="button" data-q="-1">−</button><b id="mQty">1</b><button type="button" data-q="1">+</button></div>
     </div>
@@ -327,6 +334,9 @@ const qtyOf=i=>Math.max(1,+i.qty||1);
 const $=id=>document.getElementById(id);
 const pad=n=>String(n).padStart(2,"0");
 const ymd=d=>d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());
+const kindOf=i=>(i&&i.kind==="소비")?"소비기한":"유통기한";
+let kind="소비";try{kind=localStorage.getItem("fridge-kind")==="유통"?"유통":"소비";}catch(e){}
+function markKinds(sel,k){document.querySelectorAll(sel+" button").forEach(b=>b.classList.toggle("on",b.dataset.k===k));}
 const hasDate=i=>/^\d{4}-\d{2}-\d{2}$/.test((i&&i.date)||"");
 function sinceText(i){if(!i.added)return"기한 없음";const n=-daysLeft(i.added);return n<=0?"오늘 넣음":"넣은 지 "+n+"일";}
 function byDate(a,b){const x=hasDate(a),y=hasDate(b);if(x&&y)return a.date.localeCompare(b.date);if(x)return -1;if(y)return 1;return (a.added||"").localeCompare(b.added||"");}
@@ -356,8 +366,8 @@ function render(){
     const dated=hasDate(i),d=dated?daysLeft(i.date):NaN;
     const cls=!dated?"nodate":d<0?"bad":d<=warnDays?"warn":"";
     const txt=!dated?sinceText(i):d<0?(-d)+"일 지남":d===0?"오늘까지":"D-"+d;
-    const meta=dated?i.date.replace(/-/g,".")+"까지":"유통기한 없음";
-    // 남은 기간 막대: 넣은 날~유통기한 기준
+    const meta=dated?i.date.replace(/-/g,".")+"까지 · "+kindOf(i):"기한 없음";
+    // 남은 기간 막대: 넣은 날~기한 기준
     let pct=100;
     if(dated&&i.added){const total=Math.max(1,Math.round((new Date(i.date)-new Date(i.added))/86400000));pct=Math.max(0,Math.min(100,d/total*100));}
     if(d<0)pct=100;
@@ -378,7 +388,7 @@ function render(){
   const a=$("alert");
   const few=l=>l.slice(0,2).map(i=>esc(i.name)).join(", ")+(l.length>2?` 외 ${l.length-2}개`:"");
   if(soon.length){a.className="alert warn";a.innerHTML=`⏰ <b>${few(soon)}</b> 빨리 드세요`;}
-  else if(expired.length){a.className="alert warn";a.innerHTML=`⚠️ <b>${few(expired)}</b> 유통기한 지났어요`;}
+  else if(expired.length){a.className="alert warn";a.innerHTML=`⚠️ <b>${few(expired)}</b> 기한 지났어요`;}
   else a.className="alert";
 }
 
@@ -386,7 +396,7 @@ function render(){
 function loadHist(){try{return JSON.parse(localStorage.getItem("fridge-hist")||"{}")||{};}catch(e){return {};}}
 function saveHist(hh){try{localStorage.setItem("fridge-hist",JSON.stringify(hh));}catch(e){}}
 function histOf(hh,it,count){
-  const o=hh[it.name]||{n:0,t:0};o.n+=count;o.t=Math.max(o.t,Date.now());o.p=it.place;
+  const o=hh[it.name]||{n:0,t:0};o.n+=count;o.t=Math.max(o.t,Date.now());o.p=it.place;o.k=it.kind||"유통";
   o.d=hasDate(it)&&it.added?Math.max(0,Math.round((new Date(it.date)-new Date(it.added))/864e5)):null;
   hh[it.name]=o;
 }
@@ -406,6 +416,7 @@ $("freq").onclick=e=>{
   const k=b.dataset.name,o=loadHist()[k];if(!o)return;
   $("name").value=k;$("name").dispatchEvent(new Event("input"));
   place=o.p||place;document.querySelectorAll("#places button").forEach(x=>x.classList.toggle("on",x.dataset.p===place));
+  if(o.k){kind=o.k;markKinds("#kinds",kind);}
   if(o.d===null||o.d===undefined){setNoDate(true);}else{setNoDate(false);const d=new Date();d.setDate(d.getDate()+o.d);$("date").value=ymd(d);}
 };
 async function addItem(it){
@@ -439,9 +450,10 @@ $("form").addEventListener("submit",e=>{
   const name=$("name").value.trim(),date=noDate?"":$("date").value;
   if(!name)return;
   if(!noDate&&!date){showDateErr(true);$("date").focus({preventScroll:true});$("date").scrollIntoView({block:"center",behavior:"smooth"});return;}
-  addItem({id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),name,date,place,qty:addQty,icon:iconFor(name),added:ymd(new Date())});addQty=1;$("qty").textContent=1;
+  addItem({id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),name,date,kind,place,qty:addQty,icon:iconFor(name),added:ymd(new Date())});addQty=1;$("qty").textContent=1;
   setNoDate(false);defaultDate();showDateErr(false);$("name").value="";$("preview").textContent="🍽️";lastIco="🍽️";$("addModal").classList.remove("show");
 });
+document.querySelectorAll("#kinds button").forEach(b=>b.onclick=()=>{kind=b.dataset.k;markKinds("#kinds",kind);try{localStorage.setItem("fridge-kind",kind);}catch(e){}});
 document.querySelectorAll("#places button").forEach(b=>b.onclick=()=>{place=b.dataset.p;document.querySelectorAll("#places button").forEach(x=>x.classList.toggle("on",x===b));});
 let noDate=false;
 function showDateErr(on){$("dateErr").classList.toggle("show",on);$("date").classList.toggle("bad",on);}
@@ -457,11 +469,12 @@ function openFood(id){
   const i=items.find(x=>x.id===id);if(!i)return;openId=id;
   const d=hasDate(i)?daysLeft(i.date):NaN;
   $("mIco").innerHTML=icoHTML(iconFor(i.name));$("mName").textContent=i.name;
-  $("mInfo").textContent=hasDate(i)?i.place+" · "+i.date.replace(/-/g,".")+"까지 ("+ddayText(d)+")":i.place+" · 유통기한 없음 · "+sinceText(i);
-  $("mNameIn").value=i.name;$("mDate").value=hasDate(i)?i.date:ymd(new Date(Date.now()+7*864e5));setMNoDate(!hasDate(i));mPlace=i.place;markPlace();mQty=qtyOf(i);$("mQty").textContent=mQty;$("mEat").textContent=mQty>1?"전부 다 먹음 ✓":"다 먹음 ✓";
+  $("mInfo").textContent=hasDate(i)?i.place+" · "+kindOf(i)+" "+i.date.replace(/-/g,".")+"까지 ("+ddayText(d)+")":i.place+" · 기한 없음 · "+sinceText(i);
+  $("mNameIn").value=i.name;$("mDate").value=hasDate(i)?i.date:ymd(new Date(Date.now()+7*864e5));setMNoDate(!hasDate(i));mKind=i.kind==="소비"?"소비":"유통";markKinds("#mKinds",mKind);mPlace=i.place;markPlace();mQty=qtyOf(i);$("mQty").textContent=mQty;$("mEat").textContent=mQty>1?"전부 다 먹음 ✓":"다 먹음 ✓";
   $("modal").classList.add("show");
 }
-let mPlace="냉장",mNoDate=false;
+let mPlace="냉장",mNoDate=false,mKind="유통";
+document.querySelectorAll("#mKinds button").forEach(b=>b.onclick=()=>{mKind=b.dataset.k;markKinds("#mKinds",mKind);});
 function setMNoDate(on){mNoDate=on;$("mNoDate").classList.toggle("on",on);$("mDate").disabled=on;}
 $("mNoDate").onclick=()=>setMNoDate(!mNoDate);
 const clampQ=n=>Math.max(1,Math.min(99,n));
@@ -472,8 +485,8 @@ document.querySelectorAll("#mPlaces button").forEach(b=>b.onclick=()=>{mPlace=b.
 $("mSave").onclick=()=>{
   const i=items.find(x=>x.id===openId);if(!i)return;
   const n=$("mNameIn").value.trim(),d=mNoDate?"":$("mDate").value;
-  if(!n||(!mNoDate&&!d)){toast("이름과 유통기한을 채워 주세요");return;}
-  i.name=n;i.date=d;i.place=mPlace;i.qty=mQty;i.icon=iconFor(n);
+  if(!n||(!mNoDate&&!d)){toast("이름과 날짜를 채워 주세요");return;}
+  i.name=n;i.date=d;i.kind=mKind;i.place=mPlace;i.qty=mQty;i.icon=iconFor(n);
   saveLocal();closeModal();render();toast("✏️ "+n+" 수정했어요");
 };
 // 온도 설정
@@ -520,7 +533,7 @@ let today=ymd(new Date());
 setInterval(()=>{const t=ymd(new Date());if(t!==today){today=t;render();}},60000);
 $("status").textContent="📱 음식 목록은 이 휴대폰에 저장돼요";
 function sheet(id,show){$(id).classList.toggle("show",show);}
-$("fab").onclick=()=>{renderFreq();place=filter;document.querySelectorAll("#places button").forEach(x=>x.classList.toggle("on",x.dataset.p===place));sheet("addModal",true);};
+$("fab").onclick=()=>{renderFreq();markKinds("#kinds",kind);place=filter;document.querySelectorAll("#places button").forEach(x=>x.classList.toggle("on",x.dataset.p===place));sheet("addModal",true);};
 $("aClose").onclick=()=>sheet("addModal",false);
 $("addModal").onclick=e=>{if(e.target.id==="addModal")sheet("addModal",false);};
 $("bell").onclick=()=>sheet("sModal",true);

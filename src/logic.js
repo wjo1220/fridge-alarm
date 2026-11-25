@@ -91,6 +91,6 @@ export function buildMessage(rec, nowMs) {
   const lines = [];
   if (soon.length) lines.push("⏰ " + soon.slice(0, 5).map(i => `${i.name}(${i.d === 0 ? "오늘까지" : "D-" + i.d})`).join(", ") + more(soon.length, 5));
   if (bad.length) lines.push("⚠️ 지남: " + bad.slice(0, 3).map(i => i.name).join(", ") + more(bad.length, 3));
-  const title = soon.length ? `🧊 유통기한 임박 음식 ${soon.length}개` : `🧊 유통기한 지난 음식 ${bad.length}개`;
+  const title = soon.length ? `🧊 기한 임박 음식 ${soon.length}개` : `🧊 기한 지난 음식 ${bad.length}개`;
   return { title, body: lines.join("\n") };
 }
