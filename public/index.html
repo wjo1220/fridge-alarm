@@ -210,7 +210,7 @@
 
   <div class="card main">
     <div class="ptabs" id="ptabs">
-      <button data-f="냉장" class="on">🥬 냉장<i id="c냉장">0</i></button>
+      <button data-f="냉장" class="on">🥚 냉장<i id="c냉장">0</i></button>
       <button data-f="냉동">❄️ 냉동<i id="c냉동">0</i></button>
       <button data-f="실온">🏠 실온<i id="c실온">0</i></button>
     </div>
@@ -230,7 +230,7 @@
         <input id="name" placeholder="무엇을 넣을까요? (예: 우유)" required autocomplete="off">
       </div>
       <div class="places" id="places">
-        <button type="button" data-p="냉장" class="on">🥬 냉장</button>
+        <button type="button" data-p="냉장" class="on">🥚 냉장</button>
         <button type="button" data-p="냉동">❄️ 냉동</button>
         <button type="button" data-p="실온">🏠 실온</button>
       </div>
@@ -288,7 +288,7 @@
     </div>
     <label>보관</label>
     <div class="places" id="mPlaces">
-      <button type="button" data-p="냉장">🥬 냉장</button><button type="button" data-p="냉동">❄️ 냉동</button><button type="button" data-p="실온">🏠 실온</button>
+      <button type="button" data-p="냉장">🥚 냉장</button><button type="button" data-p="냉동">❄️ 냉동</button><button type="button" data-p="실온">🏠 실온</button>
     </div>
   </div>
   <div class="btns"><button class="save" id="mSave">수정 저장</button><button class="eat" id="mEat">다 먹음 ✓</button></div>
@@ -316,7 +316,7 @@ const ICONS = [
   [["토마토"],"🍅"],[["당근"],"🥕"],[["고구마"],"🍠"],[["감자"],"🥔"],[["양파"],"🧅"],[["마늘"],"🧄"],
   [["브로콜리"],"🥦"],[["오이"],"🥒"],[["가지"],"🍆"],[["옥수수"],"🌽"],[["고추","청양"],"🌶️"],[["파프리카","피망"],"🫑"],
   [["버섯","표고","팽이","새송이"],"🍄"],[["아보카도"],"🥑"],[["콩","낫또"],"🫘"],[["두부"],"TOFU"],
-  [["상추","양상추","배추","양배추","시금치","깻잎","채소","야채","샐러드","김치","부추","대파","쪽파"],"🥬"],
+  [["상추","양상추","배추","양배추","시금치","깻잎","채소","야채","샐러드","김치","부추","대파","쪽파"],"🥚"],
   [["빵","식빵","베이글","바게트"],"🍞"],[["케이크","케익"],"🍰"],[["떡"],"🍡"],[["밥","햇반"],"🍚"],
   [["만두"],"🥟"],[["피자"],"🍕"],[["햄버거","버거"],"🍔"],[["라면","국수","면","우동","파스타"],"🍜"],
   [["국","찌개","탕","카레","수프"],"🍲"],[["반찬","도시락"],"🍱"],[["초콜릿","초코"],"🍫"],[["과자","쿠키"],"🍪"],
@@ -377,7 +377,7 @@ function render(){
     let pct=100;
     if(dated&&i.added){const total=Math.max(1,Math.round((new Date(i.date)-new Date(i.added))/86400000));pct=Math.max(0,Math.min(100,d/total*100));}
     if(d<0)pct=100;
-    const pIco=i.place==="냉동"?"❄️":i.place==="실온"?"🏠":"🥬";
+    const pIco=i.place==="냉동"?"❄️":i.place==="실온"?"🏠":"🥚";
     const q=qtyOf(i);
     if(selMode)return `<div class="item ${cls}${picked.has(i.id)?" picked":""}" data-pick="${i.id}"><div class="pick"></div><div class="ico">${icoHTML(iconFor(i.name))}</div>
       <div class="info"><div class="name">${esc(i.name)}${q>1?`<span class="qty">×${q}</span>`:""}</div><div class="meta">${meta}</div></div><div class="right"><div class="badge">${txt}</div></div></div>`;
@@ -386,7 +386,7 @@ function render(){
         <div class="meta">${meta}</div>
         ${dated?`<div class="bar"><i style="width:${pct}%"></i></div>`:""}</div>
       <div class="right"><div class="badge">${txt}</div><button class="del" data-id="${i.id}"><span class="ck"></span>${q>1?"1개 먹음":"다 먹음"}</button>${!tipShown&&i===list[0]?`<div class="tip">다 먹었으면 체크해요 👆</div>`:""}</div></div>`;
-  }).join(""):`<div class="empty"><div>${filter==="냉동"?"❄️":filter==="실온"?"🏠":"🥬"}</div>${filter==="실온"?"실온 보관 음식이 없어요":filter+"실이 비어 있어요"}</div>`;
+  }).join(""):`<div class="empty"><div>${filter==="냉동"?"❄️":filter==="실온"?"🏠":"🥚"}</div>${filter==="실온"?"실온 보관 음식이 없어요":filter+"실이 비어 있어요"}</div>`;
 
   const expired=items.filter(i=>hasDate(i)&&daysLeft(i.date)<0);
   const soon=items.filter(i=>{if(!hasDate(i))return false;const d=daysLeft(i.date);return d>=0&&d<=warnDays;});
@@ -498,7 +498,7 @@ $("mSave").onclick=()=>{
   saveLocal();closeModal();render();toast("✏️ "+n+" 수정했어요");
 };
 // 온도 설정
-const TEMP={fz:{min:-24,max:-14,label:"❄️ 냉동실 온도",good:[-20,-18]},fr:{min:0,max:7,label:"🥬 냉장실 온도",good:[1,4]}};
+const TEMP={fz:{min:-24,max:-14,label:"❄️ 냉동실 온도",good:[-20,-18]},fr:{min:0,max:7,label:"🥚 냉장실 온도",good:[1,4]}};
 let tKey="fz",tTmp=0;
 function tUpdate(){
   const c=TEMP[tKey];$("tVal").textContent=tTmp+"°";$("tVal").className="val"+(tKey==="fr"?" cold":"");

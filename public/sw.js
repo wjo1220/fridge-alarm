@@ -1,5 +1,5 @@
 // 새 버전을 먼저 받아오고, 인터넷이 안 될 때만 저장해 둔 화면을 보여줘요.
-const CACHE = "fridge-v12";
+const CACHE = "fridge-v13";
 self.addEventListener("install", e => { self.skipWaiting(); });
 self.addEventListener("activate", e => { e.waitUntil(self.clients.claim()); });
 self.addEventListener("fetch", e => {
