@@ -362,7 +362,7 @@ function render(){
   const tk=filter==="냉동"?"fz":filter==="냉장"?"fr":"";
   const cnt=items.filter(i=>i.place===filter).length;
   const left=selMode?`<button class="selbtn" id="selAll">${picked.size===cnt?"선택 해제":"전체 선택"}</button>`:cnt>=2?`<button class="selbtn" id="selOn">☑ 여러 개 지우기</button>`:"<span></span>";
-  $("phead").innerHTML=left+(tk&&!selMode?`<button class="tempbtn ${tk}${(tk==="fz"?temps.fz>-15:temps.fr>5)?" hot":""}" data-temp="${tk}">🌡️ ${temps[tk]}°<span>온도 설정</span></button>`:"");
+  $("phead").innerHTML=left+(tk&&!selMode?`<button class="tempbtn ${tk}${(tk==="fz"?temps.fz>-15:temps.fr>5)?" hot":""}" data-temp="${tk}">🌡️ ${temps[tk]}°<span>온도 설정</span></button>`:!selMode?`<span class="tempbtn" aria-hidden="true" style="visibility:hidden">🌡️ 3°<span>온도 설정</span></span>`:"");
   $("selbar").classList.toggle("show",selMode);$("fab").style.display=selMode?"none":"";
   $("selDel").disabled=!picked.size;$("selDel").textContent=picked.size?`선택한 ${picked.size}개 지우기`:"지울 음식을 골라 주세요";
   const fb=document.getElementById("fab");if(fb)fb.classList.toggle("pulse",!items.length);
@@ -386,7 +386,7 @@ function render(){
         <div class="meta">${meta}</div>
         ${dated?`<div class="bar"><i style="width:${pct}%"></i></div>`:""}</div>
       <div class="right"><div class="badge">${txt}</div><button class="del" data-id="${i.id}"><span class="ck"></span>${q>1?"1개 먹음":"다 먹음"}</button>${!tipShown&&i===list[0]?`<div class="tip">다 먹었으면 체크해요 👆</div>`:""}</div></div>`;
-  }).join(""):`<div class="empty"><div>🫙</div>${filter==="실온"?"실온 보관 음식이 없어요":filter+"실이 비어 있어요"}</div>`;
+  }).join(""):`<div class="empty"><div>${filter==="냉동"?"🍦":filter==="실온"?"🍞":"🥬"}</div>${filter==="실온"?"실온 보관 음식이 없어요":filter+"실이 비어 있어요"}</div>`;
 
   const expired=items.filter(i=>hasDate(i)&&daysLeft(i.date)<0);
   const soon=items.filter(i=>{if(!hasDate(i))return false;const d=daysLeft(i.date);return d>=0&&d<=warnDays;});
