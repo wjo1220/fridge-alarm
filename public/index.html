@@ -104,9 +104,6 @@
   .selbar button{flex:1;font-family:"Jua";font-size:17px;padding:14px;border:0;border-radius:16px;cursor:pointer}
   #selCancel{flex:.5;background:#eef3f7;color:var(--ink)}
   #selDel{background:#ff6b6b;color:#fff}#selDel:disabled{opacity:.45}
-  .tempbtn{font-family:"Jua";font-size:14px;border:0;border-radius:99px;padding:6px 12px;background:#24313d;color:#8dffcf;cursor:pointer}
-  .tempbtn.fz{color:#7fe3ff}.tempbtn.hot{color:#ffb199}
-  .tempbtn span{color:#9fb6c8;font-size:12px;margin-left:4px}
   .item{cursor:pointer}
   .item{display:flex;align-items:center;gap:12px;padding:12px;border-radius:18px;margin-bottom:8px;background:#fafcfe;border:1.5px solid var(--line);animation:in .3s ease}
   @keyframes in{from{opacity:0;transform:translateY(6px)}to{opacity:1}}
@@ -142,12 +139,6 @@
   .toast{pointer-events:none;transform:translateX(-50%) translateY(200px)!important}
   .toast.show{pointer-events:auto;transform:translateX(-50%) translateY(0)!important}
 
-  .temp{display:flex;align-items:center;justify-content:center;gap:16px;margin:6px 0 4px}
-  .temp button{width:52px;height:52px;border-radius:50%;border:0;font-size:26px;font-family:"Jua";background:#eef3f7;color:var(--ink);cursor:pointer}
-  .temp .val{min-width:110px;padding:10px 0;border-radius:16px;background:linear-gradient(180deg,#24313d,#16202a);font-family:"Jua";font-size:38px;color:#7fe3ff;text-shadow:0 0 10px rgba(127,227,255,.7)}
-  .temp .val.cold{color:#8dffcf;text-shadow:0 0 10px rgba(141,255,207,.6)}
-  .tnote{font-size:12.5px;color:var(--sub);min-height:36px;margin:8px 0 14px;line-height:1.45}
-  .tnote.bad{color:#e0622f}
   .edit{text-align:left;margin:0 0 14px}
   .edit label{display:block;font-size:12px;color:var(--sub);margin:8px 0 4px}
   .edit input{padding:10px 12px;font-size:15px}
@@ -293,13 +284,6 @@
   </div>
   <div class="btns"><button class="save" id="mSave">수정 저장</button><button class="eat" id="mEat">다 먹음 ✓</button></div>
 </div></div>
-<div class="modal" id="tModal"><div class="sheet">
-  <button class="x" id="tClose">✕</button>
-  <h3 id="tTitle">온도 설정</h3>
-  <div class="temp"><button id="tMinus">−</button><div class="val" id="tVal"></div><button id="tPlus">+</button></div>
-  <div class="tnote" id="tNote"></div>
-  <div class="btns"><button class="save" id="tOk">설정 완료</button></div>
-</div></div>
 
 <script>
 // 음식 이름 → 아이콘
@@ -352,17 +336,15 @@ function toast(m,undo){const t=$("toast");t.textContent=m;
   if(undo){const b=document.createElement("button");b.textContent="되돌리기";b.onclick=()=>{undo();t.classList.remove("show");};t.appendChild(b);}
   t.classList.add("show");clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove("show"),undo?4000:1800);}
 
-let temps={fz:-18,fr:3};
-function loadLocal(){try{const tp=JSON.parse(localStorage.getItem("fridge-temp")||"null");if(tp)temps=tp;}catch(e){}try{items=JSON.parse(localStorage.getItem("fridge-items")||"[]");warnDays=+(localStorage.getItem("fridge-days")||3);}catch(e){}}
-function saveLocal(){try{localStorage.setItem("fridge-items",JSON.stringify(items));localStorage.setItem("fridge-days",warnDays);localStorage.setItem("fridge-temp",JSON.stringify(temps));}catch(e){}if(typeof syncPush==="function")syncPush();}
+function loadLocal(){try{localStorage.removeItem("fridge-temp");}catch(e){}try{items=JSON.parse(localStorage.getItem("fridge-items")||"[]");warnDays=+(localStorage.getItem("fridge-days")||3);}catch(e){}}
+function saveLocal(){try{localStorage.setItem("fridge-items",JSON.stringify(items));localStorage.setItem("fridge-days",warnDays);}catch(e){}if(typeof syncPush==="function")syncPush();}
 
 function render(){
   $("days").value=String(warnDays);
   for(const pl of ["냉장","냉동","실온"]){const l=items.filter(i=>i.place===pl),c=$("c"+pl);c.textContent=l.length;c.classList.toggle("warn",l.some(i=>hasDate(i)&&daysLeft(i.date)<=warnDays));}
-  const tk=filter==="냉동"?"fz":filter==="냉장"?"fr":"";
   const cnt=items.filter(i=>i.place===filter).length;
   const left=selMode?`<button class="selbtn" id="selAll">${picked.size===cnt?"선택 해제":"전체 선택"}</button>`:cnt>=2?`<button class="selbtn" id="selOn">☑ 여러 개 지우기</button>`:"<span></span>";
-  $("phead").innerHTML=left+(tk&&!selMode?`<button class="tempbtn ${tk}${(tk==="fz"?temps.fz>-15:temps.fr>5)?" hot":""}" data-temp="${tk}">🌡️ ${temps[tk]}°<span>온도 설정</span></button>`:!selMode?`<span class="tempbtn" aria-hidden="true" style="visibility:hidden">🌡️ 3°<span>온도 설정</span></span>`:"");
+  $("phead").innerHTML=left;
   $("selbar").classList.toggle("show",selMode);$("fab").style.display=selMode?"none":"";
   $("selDel").disabled=!picked.size;$("selDel").textContent=picked.size?`선택한 ${picked.size}개 지우기`:"지울 음식을 골라 주세요";
   const fb=document.getElementById("fab");if(fb)fb.classList.toggle("pulse",!items.length);
@@ -497,23 +479,6 @@ $("mSave").onclick=()=>{
   i.name=n;i.date=d;i.kind=mKind;i.place=mPlace;i.qty=mQty;i.icon=iconFor(n);
   saveLocal();closeModal();render();toast("✏️ "+n+" 수정했어요");
 };
-// 온도 설정
-const TEMP={fz:{min:-24,max:-14,label:"❄️ 냉동실 온도",good:[-20,-18]},fr:{min:0,max:7,label:"🥚 냉장실 온도",good:[1,4]}};
-let tKey="fz",tTmp=0;
-function tUpdate(){
-  const c=TEMP[tKey];$("tVal").textContent=tTmp+"°";$("tVal").className="val"+(tKey==="fr"?" cold":"");
-  const n=$("tNote");
-  if(tKey==="fz"){n.className="tnote"+(tTmp>-15?" bad":"");n.textContent=tTmp>-15?"⚠️ 너무 높아요. 냉동식품은 -18° 이하가 좋아요.":"보통 -18° 정도가 알맞아요. (설정 범위 -24° ~ -14°)";}
-  else{n.className="tnote"+(tTmp>5?" bad":"");n.textContent=tTmp>5?"⚠️ 너무 높아요. 음식이 빨리 상할 수 있어요.":tTmp===0?"0°는 채소가 얼 수 있어요. 보통 3° 정도가 알맞아요.":"보통 3° 정도가 알맞아요. (설정 범위 0° ~ 7°)";}
-  $("tMinus").disabled=tTmp<=c.min;$("tPlus").disabled=tTmp>=c.max;
-  $("tMinus").style.opacity=tTmp<=c.min?.35:1;$("tPlus").style.opacity=tTmp>=c.max?.35:1;
-}
-function openTemp(k){tKey=k;tTmp=temps[k];$("tTitle").textContent=TEMP[k].label;tUpdate();$("tModal").classList.add("show");}
-$("tMinus").onclick=()=>{if(tTmp>TEMP[tKey].min){tTmp--;tUpdate();}};
-$("tPlus").onclick=()=>{if(tTmp<TEMP[tKey].max){tTmp++;tUpdate();}};
-$("tOk").onclick=()=>{temps[tKey]=tTmp;saveLocal();render();$("tModal").classList.remove("show");toast((tKey==="fz"?"냉동실 ":"냉장실 ")+tTmp+"°로 설정했어요");};
-$("tClose").onclick=()=>$("tModal").classList.remove("show");
-$("tModal").onclick=e=>{if(e.target.id==="tModal")$("tModal").classList.remove("show");};
 function closeModal(){$("modal").classList.remove("show");openId=null;}
 $("mClose").onclick=closeModal;
 $("modal").onclick=e=>{if(e.target.id==="modal")closeModal();};
@@ -531,7 +496,7 @@ $("selDel").onclick=()=>{
 };
 $("phead").addEventListener("click",e=>{
   if(e.target.id==="selOn"){setSel(true);return;}
-  if(e.target.id==="selAll"){const l=items.filter(i=>i.place===filter);picked=picked.size===l.length?new Set():new Set(l.map(i=>i.id));render();return;}const t=e.target.closest("[data-temp]");if(t)openTemp(t.dataset.temp);});
+  if(e.target.id==="selAll"){const l=items.filter(i=>i.place===filter);picked=picked.size===l.length?new Set():new Set(l.map(i=>i.id));render();return;}});
 $("days").onchange=()=>{warnDays=+$("days").value;render();saveDays();};
 
 loadLocal();seedHist();render();
